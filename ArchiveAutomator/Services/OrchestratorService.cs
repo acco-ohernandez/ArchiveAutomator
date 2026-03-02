@@ -1,6 +1,5 @@
 using ArchiveAutomator.Interfaces;
 using ArchiveAutomator.Models;
-using ArchiveAutomator.Providers;
 using System.IO;
 
 namespace ArchiveAutomator.Services;
@@ -54,8 +53,8 @@ public class OrchestratorService
             job.State = JobState.InProgress;
             await _sessionService.SaveAsync(manifest);
 
-            string source = BuildSourcePath(sourceFolderRoot, job);
-            string destination = BuildDestinationPath(archiveFolderRoot, job);
+            string source      = BuildPath(sourceFolderRoot,  job);
+            string destination = BuildPath(archiveFolderRoot, job);
 
             // Report "starting" message so the user can see what's happening in real time
             progress?.Report(new OrchestratorProgress
@@ -151,18 +150,13 @@ public class OrchestratorService
     }
 
     /// <summary>
-    /// Builds the full source path from the root and the job's folder name.
-    /// In Box mode, sourceFolderRoot is the parent folder ID and FolderName is the child folder ID.
+    /// Resolves a full path (or Box folder ID) from a root and a job's folder name.
+    /// When <paramref name="root"/> is empty the folder name is used as-is (Box ID mode).
     /// </summary>
-    private static string BuildSourcePath(string root, JobItem job) =>
+    private static string BuildPath(string root, JobItem job) =>
         string.IsNullOrEmpty(root)
             ? job.FolderName
-            : System.IO.Path.Combine(root, job.FolderName);
-
-    private static string BuildDestinationPath(string root, JobItem job) =>
-        string.IsNullOrEmpty(root)
-            ? job.FolderName
-            : System.IO.Path.Combine(root, job.FolderName);
+            : Path.Combine(root, job.FolderName);
 
     // ── Progress message helpers ───────────────────────────────────────────
 

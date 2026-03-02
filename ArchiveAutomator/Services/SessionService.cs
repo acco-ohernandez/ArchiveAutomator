@@ -23,13 +23,15 @@ public class SessionService
     }
 
     /// <summary>
-    /// Returns the most recent incomplete session manifest (any job not in Success state),
-    /// or null if no resumable session exists.
+    /// Returns the most recent incomplete session manifest (any job still Pending or InProgress),
+    /// or <c>null</c> if no resumable session exists.
+    /// Files are ordered by last-write time (newest first) — GUID-based names do NOT sort
+    /// chronologically, so string ordering would silently pick the wrong session.
     /// </summary>
     public SessionManifest? FindResumable()
     {
         var files = Directory.GetFiles(_sessionDirectory, "session_*.json")
-                             .OrderByDescending(f => f);
+                             .OrderByDescending(File.GetLastWriteTimeUtc);
 
         foreach (string file in files)
         {
@@ -47,17 +49,17 @@ public class SessionService
             }
             catch
             {
-                // Corrupt file — skip it
+                // Corrupt or unreadable file — skip silently
             }
         }
 
         return null;
     }
 
-    /// <summary>Returns all session files ordered newest-first.</summary>
+    /// <summary>Returns all session files ordered newest-first (by write time).</summary>
     public IEnumerable<string> ListSessionFiles() =>
         Directory.GetFiles(_sessionDirectory, "session_*.json")
-                 .OrderByDescending(f => f);
+                 .OrderByDescending(File.GetLastWriteTimeUtc);
 
     private string GetPath(SessionManifest manifest) =>
         Path.Combine(_sessionDirectory, $"session_{manifest.RunId}.json");

@@ -99,9 +99,16 @@ public class BoxApiProvider : IStorageProvider
 
     // ── Retry with exponential back-off ───────────────────────────────────
 
+    /// <summary>
+    /// Retries <paramref name="action"/> up to <see cref="MaxRetries"/> times with exponential
+    /// back-off on rate-limit (HTTP 429) or transient server errors (5xx).
+    /// Any non-retryable exception — or a failure on the final attempt — propagates immediately.
+    /// </summary>
     private static async System.Threading.Tasks.Task<T> RetryAsync<T>(
         Func<System.Threading.Tasks.Task<T>> action, CancellationToken ct)
     {
+        BoxApiException? lastTransient = null;
+
         for (int attempt = 0; attempt <= MaxRetries; attempt++)
         {
             ct.ThrowIfCancellationRequested();
@@ -111,11 +118,15 @@ public class BoxApiProvider : IStorageProvider
             }
             catch (BoxApiException ex) when (attempt < MaxRetries && IsRateLimitOrTransient(ex))
             {
-                int delay = BaseDelayMs * (int)Math.Pow(2, attempt);
+                lastTransient = ex;
+                int delay = BaseDelayMs * (int)Math.Pow(2, attempt); // 500ms, 1s, 2s, 4s
                 await System.Threading.Tasks.Task.Delay(delay, ct);
             }
+            // Non-retryable BoxApiException or final-attempt failure propagates naturally
         }
-        throw new InvalidOperationException("RetryAsync: unreachable");
+
+        // Only reached when every attempt was a retryable failure — rethrow the last one.
+        throw lastTransient!;
     }
 
     private static async Task RetryAsync(Func<System.Threading.Tasks.Task> action, CancellationToken ct)

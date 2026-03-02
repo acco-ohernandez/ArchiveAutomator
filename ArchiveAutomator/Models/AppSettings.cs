@@ -1,17 +1,14 @@
 namespace ArchiveAutomator.Models;
 
+/// <summary>
+/// Column-mapping parameters selected by the user in the UI.
+/// Passed to <see cref="Services.ExcelParserService"/> for each parse operation.
+/// </summary>
 public class ColumnMappings
 {
     public string JobNumberColumn { get; set; } = string.Empty;
-    public string StatusColumn { get; set; } = string.Empty;
-    public string TriggerValue { get; set; } = string.Empty;
+    public string StatusColumn    { get; set; } = string.Empty;
+    public string TriggerValue    { get; set; } = string.Empty;
 }
-
-public class AppSettings
-{
-    public string SourcePath { get; set; } = string.Empty;
-    public string ArchivePath { get; set; } = string.Empty;
-    public StorageMode Mode { get; set; } = StorageMode.Local;
-    public OperationMode Operation { get; set; } = OperationMode.Move;
-    public ColumnMappings ColumnMappings { get; set; } = new();
-}
+// Note: The AppSettings class that previously lived here was unused dead code and has been removed.
+// Runtime settings are persisted via Services.SettingsService / Services.PersistedSettings.

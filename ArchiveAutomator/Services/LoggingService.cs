@@ -7,7 +7,9 @@ namespace ArchiveAutomator.Services;
 public class LoggingService
 {
     private readonly string _logPath;
-    private static readonly SemaphoreSlim _lock = new(1, 1);
+    // Instance-level lock: each LoggingService owns its own semaphore.
+    // A static lock would serialize writes across all instances (wrong scope).
+    private readonly SemaphoreSlim _lock = new(1, 1);
 
     /// <summary>Full path to this run's log file.</summary>
     public string LogFilePath => _logPath;

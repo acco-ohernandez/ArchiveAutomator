@@ -72,15 +72,29 @@ public class LocalFileSystemProvider : IStorageProvider
         return !string.Equals(srcRoot, dstRoot, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Copies a directory tree recursively using true async I/O (FileStream + CopyToAsync).
+    /// Avoids <c>Task.Run(() => File.Copy(...))</c> which wastes a thread-pool thread per file.
+    /// A 64 KB buffer is chosen to balance system-call overhead vs. memory pressure.
+    /// </summary>
     private static async Task CopyRecursiveAsync(string source, string destination, CancellationToken ct)
     {
+        const int BufferSize = 65_536; // 64 KB — good balance for local I/O
         Directory.CreateDirectory(destination);
 
-        foreach (string file in Directory.GetFiles(source))
+        foreach (string srcFile in Directory.GetFiles(source))
         {
             ct.ThrowIfCancellationRequested();
-            string dest = Path.Combine(destination, Path.GetFileName(file));
-            await Task.Run(() => File.Copy(file, dest, overwrite: true), ct);
+            string dstFile = Path.Combine(destination, Path.GetFileName(srcFile));
+
+            await using var srcStream = new FileStream(
+                srcFile, FileMode.Open, FileAccess.Read, FileShare.Read,
+                BufferSize, useAsync: true);
+            await using var dstStream = new FileStream(
+                dstFile, FileMode.Create, FileAccess.Write, FileShare.None,
+                BufferSize, useAsync: true);
+
+            await srcStream.CopyToAsync(dstStream, BufferSize, ct);
         }
 
         foreach (string subDir in Directory.GetDirectories(source))

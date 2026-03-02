@@ -4,6 +4,7 @@ using ArchiveAutomator.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using MsgBox = System.Windows.MessageBox;
 using MsgBoxResult = System.Windows.MessageBoxResult;
 using MsgBoxButton = System.Windows.MessageBoxButton;
@@ -14,14 +15,17 @@ namespace ArchiveAutomator.ViewModels;
 public class MainViewModel : ViewModelBase
 {
     // ── Services ───────────────────────────────────────────────────────────
-    private readonly ExcelParserService _parser = new();
-    private readonly SettingsService _settingsService = new();
-    private SessionService? _sessionService;
-    private OrchestratorService? _orchestrator;
+    private readonly ExcelParserService _parser       = new();
+    private readonly SettingsService    _settingsService = new();
+    private SessionService?          _sessionService;
+    private OrchestratorService?     _orchestrator;
     private CancellationTokenSource? _cts;
 
     private string _logsDirectory = string.Empty;
     private string _lastLogPath   = string.Empty;
+
+    // StringBuilder backing for LogText — avoids O(n²) string allocation on every AppendLog call.
+    private readonly StringBuilder _logBuffer = new();
 
     // Used internally to signal startup behaviour
     private enum SessionCheckResult { None, Resumed, Declined }
@@ -376,6 +380,7 @@ public class MainViewModel : ViewModelBase
 
         // Clear runtime state so the user starts fresh with the loaded settings
         Jobs.Clear();
+        _logBuffer.Clear();
         LogText       = string.Empty;
         ProgressValue = 0;
         OnPropertyChanged(nameof(CanStart));
@@ -441,6 +446,7 @@ public class MainViewModel : ViewModelBase
 
         // Clear previous results so the user starts with a clean slate each load
         Jobs.Clear();
+        _logBuffer.Clear();
         LogText       = string.Empty;
         ProgressValue = 0;
         OnPropertyChanged(nameof(CanStart));
@@ -477,8 +483,6 @@ public class MainViewModel : ViewModelBase
                 MsgBoxButton.OK, MsgBoxImage.Warning);
             return;
         }
-
-        InitServices();
 
         // Create a fresh per-run log file
         string runTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
@@ -588,6 +592,7 @@ public class MainViewModel : ViewModelBase
         // Clear runtime state
         Jobs.Clear();
         AvailableColumns.Clear();
+        _logBuffer.Clear();
         LogText            = string.Empty;
         ProgressValue      = 0;
         IsBoxAuthenticated = false;
@@ -657,6 +662,8 @@ public class MainViewModel : ViewModelBase
 
     private void AppendLog(string message)
     {
-        LogText += $"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}";
+        _logBuffer.Append('[').Append(DateTime.Now.ToString("HH:mm:ss")).Append("] ")
+                  .AppendLine(message);
+        LogText = _logBuffer.ToString();
     }
 }

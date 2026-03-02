@@ -1,6 +1,7 @@
 using ArchiveAutomator.Models;
 using Newtonsoft.Json;
 using System.IO;
+using System.Text;
 
 namespace ArchiveAutomator.Services;
 
@@ -109,12 +110,21 @@ public class SettingsService
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    /// <summary>Strips characters that are illegal in file names and trims whitespace.</summary>
+    // Pre-computed set for O(1) char lookup — avoids rebuilding on every call.
+    private static readonly HashSet<char> InvalidFileNameChars = new(Path.GetInvalidFileNameChars());
+
+    /// <summary>
+    /// Strips characters that are illegal in file names and trims whitespace.
+    /// Uses a single-pass <see cref="StringBuilder"/> instead of N string.Replace
+    /// calls to avoid creating intermediate string allocations per illegal character.
+    /// </summary>
     private static string SanitizeName(string name)
     {
-        foreach (char c in Path.GetInvalidFileNameChars())
-            name = name.Replace(c, '_');
-        name = name.Trim();
-        return name.Length > 0 ? name : "Default";
+        var sb = new StringBuilder(name.Length);
+        foreach (char c in name)
+            sb.Append(InvalidFileNameChars.Contains(c) ? '_' : c);
+
+        string result = sb.ToString().Trim();
+        return result.Length > 0 ? result : "Default";
     }
 }
