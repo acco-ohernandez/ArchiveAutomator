@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet add package Box.V2)",
+      "Bash(dotnet add package ClosedXML)",
+      "Bash(dotnet add package CsvHelper)",
+      "Bash(dotnet add package Newtonsoft.Json)",
+      "Bash(dotnet add package Microsoft.Identity.Client)",
+      "Bash(dotnet build ArchiveAutomator.sln)",
+      "Bash(dotnet remove package Box.V2)",
+      "Bash(dotnet add package Box.Sdk.Gen)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(\")",
+      "Bash(powershell.exe -File:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

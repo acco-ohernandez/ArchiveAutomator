@@ -1,0 +1,134 @@
+{
+  "RunId": "d5dd0fd3-f77b-43a3-8b52-bf5b31744963",
+  "StartedAt": "2026-03-02T08:53:17.9249935Z",
+  "Mode": 0,
+  "Operation": 0,
+  "Jobs": [
+    {
+      "JobNumber": "10001",
+      "FolderName": "10001",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10002",
+      "FolderName": "10002",
+      "Status": "Closed",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10002' is locked or in use by another process."
+    },
+    {
+      "JobNumber": "10003",
+      "FolderName": "10003",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10004",
+      "FolderName": "10004",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10005",
+      "FolderName": "10005",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10006",
+      "FolderName": "10006",
+      "Status": "Closed",
+      "State": 3,
+      "ErrorDetails": "Source folder not found: 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10006'"
+    },
+    {
+      "JobNumber": "10008",
+      "FolderName": "10008",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10009",
+      "FolderName": "10009",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10010",
+      "FolderName": "10010",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10011",
+      "FolderName": "10011",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10012",
+      "FolderName": "10012",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10013",
+      "FolderName": "10013",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10014",
+      "FolderName": "10014",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10015",
+      "FolderName": "10015",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10016",
+      "FolderName": "10016",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10017",
+      "FolderName": "10017",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10018",
+      "FolderName": "10018",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10019",
+      "FolderName": "10019",
+      "Status": "Closed",
+      "State": 2,
+      "ErrorDetails": ""
+    }
+  ]
+}

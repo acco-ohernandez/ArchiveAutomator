@@ -1,0 +1,347 @@
+<Window x:Class="ArchiveAutomator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ArchiveAutomator.ViewModels"
+        xmlns:views="clr-namespace:ArchiveAutomator.Views"
+        mc:Ignorable="d"
+        Title="Archive Automator" Height="780" Width="1100"
+        MinHeight="600" MinWidth="860">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         Outer DockPanel: Menu → top, Action bar → bottom,
+         Status bar → bottom, main Grid fills the rest.
+    ════════════════════════════════════════════════════════════════ -->
+    <DockPanel>
+
+        <!-- ── Menu bar ──────────────────────────────────────────── -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New Run (Clear All Fields)"
+                          Command="{Binding ClearAllCommand}"/>
+                <Separator/>
+                <MenuItem Header="Open _Logs Folder"
+                          Command="{Binding OpenLogsFolderCommand}"/>
+                <MenuItem Header="Open _Last Log"
+                          Command="{Binding OpenLastLogCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- ── Status bar ────────────────────────────────────────── -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding Jobs.Count, StringFormat='Jobs loaded: {0}'}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding ProgressValue, StringFormat='Progress: {0:F0}%'}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="Settings auto-saved" Foreground="Gray" FontSize="11"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- ── Action bar ────────────────────────────────────────── -->
+        <DockPanel DockPanel.Dock="Bottom" LastChildFill="False"
+                   Margin="12 4 12 6">
+            <Button DockPanel.Dock="Right"
+                    Content="⊕  New Run (Clear All Fields)"
+                    Command="{Binding ClearAllCommand}"
+                    Padding="10 4"
+                    ToolTip="Reset all fields and start fresh. Saved settings will also be cleared."/>
+        </DockPanel>
+
+        <!-- ═══════════════════════════════════════════════════════
+             Main area: Left settings panel | GridSplitter | Right panel
+        ════════════════════════════════════════════════════════════ -->
+        <Grid Margin="12 8 12 0">
+            <Grid.ColumnDefinitions>
+                <!-- Left: settings panel — user can drag to widen -->
+                <ColumnDefinition Width="360" MinWidth="280"/>
+                <!-- Vertical splitter -->
+                <ColumnDefinition Width="6"/>
+                <!-- Right: jobs + log — fills remaining space -->
+                <ColumnDefinition Width="*" MinWidth="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ══════════════════════════════════════════════════
+                 LEFT PANEL — scrollable stack of collapsible sections
+            ═══════════════════════════════════════════════════════ -->
+            <ScrollViewer Grid.Column="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="0 0 4 0">
+                <StackPanel>
+
+                    <!-- ────────────── Section: Mode ────────────── -->
+                    <Expander Style="{StaticResource SectionExpander}" Header="Mode">
+                        <StackPanel Margin="0 2 0 0">
+
+                            <!-- Storage row -->
+                            <DockPanel LastChildFill="False" Margin="0 0 0 5">
+                                <TextBlock Text="Storage:" VerticalAlignment="Center"
+                                           Width="72" FontWeight="Normal"/>
+                                <RadioButton Content="Local File System"
+                                             GroupName="StorageMode"
+                                             IsChecked="{Binding StorageMode,
+                                                 Converter={StaticResource EnumBoolConverter},
+                                                 ConverterParameter=Local}"
+                                             VerticalAlignment="Center" Margin="0 0 12 0"/>
+                                <RadioButton Content="Box.com (API)"
+                                             GroupName="StorageMode"
+                                             IsChecked="{Binding StorageMode,
+                                                 Converter={StaticResource EnumBoolConverter},
+                                                 ConverterParameter=Box}"
+                                             VerticalAlignment="Center"/>
+                            </DockPanel>
+
+                            <!-- Operation row -->
+                            <DockPanel LastChildFill="False">
+                                <TextBlock Text="Operation:" VerticalAlignment="Center"
+                                           Width="72" FontWeight="Normal"/>
+                                <RadioButton Content="Move"
+                                             GroupName="OperationMode"
+                                             IsChecked="{Binding OperationMode,
+                                                 Converter={StaticResource EnumBoolConverter},
+                                                 ConverterParameter=Move}"
+                                             VerticalAlignment="Center" Margin="0 0 10 0"/>
+                                <RadioButton Content="Copy"
+                                             GroupName="OperationMode"
+                                             IsChecked="{Binding OperationMode,
+                                                 Converter={StaticResource EnumBoolConverter},
+                                                 ConverterParameter=Copy}"
+                                             VerticalAlignment="Center" Margin="0 0 10 0"/>
+                                <RadioButton Content="Delete"
+                                             GroupName="OperationMode"
+                                             IsChecked="{Binding OperationMode,
+                                                 Converter={StaticResource EnumBoolConverter},
+                                                 ConverterParameter=Delete}"
+                                             VerticalAlignment="Center"/>
+                            </DockPanel>
+
+                            <!-- Box credentials (shown only when Box mode is selected) -->
+                            <Border Visibility="{Binding IsBoxMode,
+                                        Converter={StaticResource BoolVisibilityConverter}}"
+                                    BorderBrush="#CCCCCC" BorderThickness="0 1 0 0"
+                                    Margin="0 8 0 0" Padding="0 8 0 0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="5"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="6"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Client ID -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Client ID:"
+                                               VerticalAlignment="Center"/>
+                                    <TextBox   Grid.Row="0" Grid.Column="1"
+                                               x:Name="TxtClientId"
+                                               Text="{Binding BoxClientId, UpdateSourceTrigger=PropertyChanged}"
+                                               Padding="4 2" VerticalContentAlignment="Center"/>
+
+                                    <!-- Client Secret -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Client Secret:"
+                                               VerticalAlignment="Center"/>
+                                    <PasswordBox Grid.Row="2" Grid.Column="1"
+                                                 x:Name="PwdClientSecret"
+                                                 Padding="4 2" VerticalContentAlignment="Center"/>
+
+                                    <!-- Sign-in button + authenticated indicator -->
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                                                Orientation="Horizontal">
+                                        <Button Content="Sign in with Box…"
+                                                Command="{Binding AuthenticateBoxCommand}"
+                                                Padding="10 3" Margin="0 0 10 0"/>
+                                        <TextBlock Text="✓ Authenticated"
+                                                   Foreground="Green" FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsBoxAuthenticated,
+                                                       Converter={StaticResource BoolVisibilityConverter}}"/>
+                                    </StackPanel>
+
+                                    <!-- Help hint -->
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+                                               FontSize="10" Foreground="Gray" TextWrapping="Wrap"
+                                               Text="Client ID and Secret are from developer.box.com → My Apps → OAuth 2.0. 'Sign in' opens your browser to log in with Box credentials."/>
+                                </Grid>
+                            </Border>
+
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- ─────────── Section: Settings Profile ──────── -->
+                    <Expander Style="{StaticResource SectionExpander}" Header="Settings Profile">
+                        <Grid Margin="0 2 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="7"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Profile name:"
+                                       VerticalAlignment="Center"/>
+                            <!-- Editable ComboBox: type a new name or pick a saved one -->
+                            <ComboBox  Grid.Row="0" Grid.Column="1"
+                                       IsEditable="True"
+                                       Text="{Binding ProfileName, UpdateSourceTrigger=PropertyChanged}"
+                                       ItemsSource="{Binding AvailableProfiles}"
+                                       VerticalContentAlignment="Center"
+                                       ToolTip="Type a name for a new profile, or select an existing one."/>
+
+                            <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                        Orientation="Horizontal">
+                                <Button Content="💾  Save Settings"
+                                        Command="{Binding SaveProfileCommand}"
+                                        Padding="10 3" Margin="0 0 6 0"
+                                        ToolTip="Save all current settings to the named profile."/>
+                                <Button Content="📂  Load Settings"
+                                        Command="{Binding LoadProfileCommand}"
+                                        Padding="10 3"
+                                        ToolTip="Restore all settings from the named profile."/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                                       FontSize="10" Foreground="Gray" TextWrapping="Wrap"
+                                       Text="Profiles stored in %AppData%\ArchiveAutomator\profiles\  ·  Box secret is never saved"/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- ─────────── Section: Job List File ─────────── -->
+                    <Expander Style="{StaticResource SectionExpander}" Header="Job List File">
+                        <Grid Margin="0 2 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding CsvFilePath, UpdateSourceTrigger=PropertyChanged}"
+                                     IsReadOnly="True" VerticalContentAlignment="Center" Padding="4 2"
+                                     ToolTip="{Binding CsvFilePath}"/>
+                            <Button  Grid.Column="1" Content="Browse…"
+                                     Command="{Binding BrowseCsvCommand}"
+                                     Margin="6 0 0 0" Padding="8 2"/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- ─────────── Section: Column Mapping ─────────── -->
+                    <Expander Style="{StaticResource SectionExpander}" Header="Column Mapping">
+                        <views:MappingView Margin="0 2 0 0"/>
+                    </Expander>
+
+                    <!-- ─────────── Section: Folder Paths ─────────── -->
+                    <Expander Style="{StaticResource SectionExpander}" Header="Folder Paths">
+                        <views:PathsView Margin="0 2 0 0"/>
+                    </Expander>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ══════════════════════════════════════════════════
+                 VERTICAL GRID SPLITTER — drag to resize panels
+            ═══════════════════════════════════════════════════════ -->
+            <GridSplitter Grid.Column="1"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="#DDDDDD"
+                          ShowsPreview="True"
+                          ToolTip="Drag to resize panels"/>
+
+            <!-- ══════════════════════════════════════════════════
+                 RIGHT PANEL — Matched Jobs (top) + Execution Log (bottom)
+                 User can drag the horizontal splitter to adjust the split.
+            ═══════════════════════════════════════════════════════ -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <!-- Matched Jobs — starts at 200px, user can resize -->
+                    <RowDefinition Height="200" MinHeight="60"/>
+                    <!-- Horizontal splitter -->
+                    <RowDefinition Height="6"/>
+                    <!-- Execution Log — fills remaining height -->
+                    <RowDefinition Height="*" MinHeight="120"/>
+                </Grid.RowDefinitions>
+
+                <!-- ── Matched Jobs (Pre-flight) ─────────────── -->
+                <Border Grid.Row="0"
+                        BorderBrush="#BBBBBB" BorderThickness="1"
+                        CornerRadius="4" Background="White"
+                        Margin="6 0 0 0">
+                    <DockPanel>
+                        <!-- Header bar matching SectionExpander style -->
+                        <Border DockPanel.Dock="Top"
+                                BorderBrush="#BBBBBB" BorderThickness="0 0 0 1"
+                                CornerRadius="3 3 0 0" Padding="10 7">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#F5F5F5" Offset="0"/>
+                                    <GradientStop Color="#E8E8E8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <TextBlock Text="Matched Jobs (Pre-flight)"
+                                       FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#222222"/>
+                        </Border>
+                        <views:PreFlightView Margin="4"/>
+                    </DockPanel>
+                </Border>
+
+                <!-- ── Horizontal GridSplitter ───────────────── -->
+                <GridSplitter Grid.Row="1"
+                              Height="6"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              Background="#DDDDDD"
+                              ShowsPreview="True"
+                              Margin="6 0 0 0"
+                              ToolTip="Drag to resize log area"/>
+
+                <!-- ── Execution Log ──────────────────────────── -->
+                <Border Grid.Row="2"
+                        BorderBrush="#BBBBBB" BorderThickness="1"
+                        CornerRadius="4" Background="White"
+                        Margin="6 0 0 0">
+                    <DockPanel>
+                        <!-- Header bar matching SectionExpander style -->
+                        <Border DockPanel.Dock="Top"
+                                BorderBrush="#BBBBBB" BorderThickness="0 0 0 1"
+                                CornerRadius="3 3 0 0" Padding="10 7">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#F5F5F5" Offset="0"/>
+                                    <GradientStop Color="#E8E8E8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <TextBlock Text="Execution Log"
+                                       FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#222222"/>
+                        </Border>
+                        <views:ExecutionView Margin="4"/>
+                    </DockPanel>
+                </Border>
+
+            </Grid><!-- /right panel -->
+
+        </Grid><!-- /main grid -->
+
+    </DockPanel>
+</Window>

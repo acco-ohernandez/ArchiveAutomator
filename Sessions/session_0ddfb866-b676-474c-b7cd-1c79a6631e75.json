@@ -1,0 +1,148 @@
+{
+  "RunId": "0ddfb866-b676-474c-b7cd-1c79a6631e75",
+  "StartedAt": "2026-03-02T06:07:33.9857795Z",
+  "Mode": 0,
+  "Operation": 0,
+  "Jobs": [
+    {
+      "JobNumber": "10001",
+      "FolderName": "10001",
+      "Status": "Close",
+      "State": 2,
+      "ErrorDetails": ""
+    },
+    {
+      "JobNumber": "10002",
+      "FolderName": "10002",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10002' is locked or in use."
+    },
+    {
+      "JobNumber": "10003",
+      "FolderName": "10003",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10003' is locked or in use."
+    },
+    {
+      "JobNumber": "10004",
+      "FolderName": "10004",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10004' is locked or in use."
+    },
+    {
+      "JobNumber": "10005",
+      "FolderName": "10005",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10005' is locked or in use."
+    },
+    {
+      "JobNumber": "10006",
+      "FolderName": "10006",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10006' is locked or in use."
+    },
+    {
+      "JobNumber": "10007",
+      "FolderName": "10007",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10007' is locked or in use."
+    },
+    {
+      "JobNumber": "10008",
+      "FolderName": "10008",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10008' is locked or in use."
+    },
+    {
+      "JobNumber": "10009",
+      "FolderName": "10009",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10009' is locked or in use."
+    },
+    {
+      "JobNumber": "10010",
+      "FolderName": "10010",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10010' is locked or in use."
+    },
+    {
+      "JobNumber": "10011",
+      "FolderName": "10011",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10011' is locked or in use."
+    },
+    {
+      "JobNumber": "10012",
+      "FolderName": "10012",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10012' is locked or in use."
+    },
+    {
+      "JobNumber": "10013",
+      "FolderName": "10013",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10013' is locked or in use."
+    },
+    {
+      "JobNumber": "10014",
+      "FolderName": "10014",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10014' is locked or in use."
+    },
+    {
+      "JobNumber": "10015",
+      "FolderName": "10015",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10015' is locked or in use."
+    },
+    {
+      "JobNumber": "10016",
+      "FolderName": "10016",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10016' is locked or in use."
+    },
+    {
+      "JobNumber": "10017",
+      "FolderName": "10017",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10017' is locked or in use."
+    },
+    {
+      "JobNumber": "10018",
+      "FolderName": "10018",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10018' is locked or in use."
+    },
+    {
+      "JobNumber": "10019",
+      "FolderName": "10019",
+      "Status": "Close",
+      "State": 3,
+      "ErrorDetails": "Folder 'C:\\CORP BOX\\Box\\MoveTesting\\Source\\10019' is locked or in use."
+    },
+    {
+      "JobNumber": "10020",
+      "FolderName": "10020",
+      "Status": "Close",
+      "State": 2,
+      "ErrorDetails": ""
+    }
+  ]
+}

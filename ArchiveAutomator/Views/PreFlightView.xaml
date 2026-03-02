@@ -1,0 +1,42 @@
+<UserControl x:Class="ArchiveAutomator.Views.PreFlightView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+
+    <DataGrid ItemsSource="{Binding Jobs}"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              IsReadOnly="True"
+              GridLinesVisibility="Horizontal"
+              AlternatingRowBackground="#F5F5F5"
+              SelectionMode="Single">
+
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Job Number" Binding="{Binding JobNumber}" Width="160"/>
+            <DataGridTextColumn Header="Folder Name" Binding="{Binding FolderName}" Width="*"/>
+            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="100">
+                <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="Success">
+                                <Setter Property="Foreground" Value="Green"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="Text" Value="Failed">
+                                <Setter Property="Foreground" Value="Red"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="Text" Value="InProgress">
+                                <Setter Property="Foreground" Value="DarkOrange"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGridTextColumn.ElementStyle>
+            </DataGridTextColumn>
+            <DataGridTextColumn Header="Error" Binding="{Binding ErrorDetails}" Width="260"/>
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>
