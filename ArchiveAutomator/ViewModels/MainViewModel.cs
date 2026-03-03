@@ -217,10 +217,22 @@ public class MainViewModel : ViewModelBase
 
     private void InitServices()
     {
-        string solutionRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..");
-        string sessionsDir  = Path.GetFullPath(Path.Combine(solutionRoot, "Sessions"));
-        _logsDirectory      = Path.GetFullPath(Path.Combine(solutionRoot, "Logs"));
-        _sessionService     = new SessionService(sessionsDir);
+        // Use %LocalAppData%\ArchiveAutomator\ so the app works without elevation
+        // regardless of where the executable lives (zip extract, Program Files, etc.).
+        // The old approach navigated up 4 levels from BaseDirectory, which only worked
+        // inside the VS solution folder structure.
+        string baseDir     = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "ArchiveAutomator");
+        _logsDirectory     = Path.Combine(baseDir, "Logs");
+        string sessionsDir = Path.Combine(baseDir, "Sessions");
+
+        // Pre-create both directories so they exist before any run starts.
+        // Directory.CreateDirectory is a no-op if they already exist.
+        Directory.CreateDirectory(_logsDirectory);
+        Directory.CreateDirectory(sessionsDir);
+
+        _sessionService = new SessionService(sessionsDir);
     }
 
     /// <summary>
@@ -484,43 +496,46 @@ public class MainViewModel : ViewModelBase
             return;
         }
 
-        // Create a fresh per-run log file
-        string runTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var loggingService  = new LoggingService(_logsDirectory, runTimestamp);
-        _lastLogPath        = loggingService.LogFilePath;
-
-        var manifest = new SessionManifest
-        {
-            Mode      = StorageMode,
-            Operation = OperationMode,
-            Jobs      = Jobs.ToList()
-        };
-
-        var provider = StorageMode == StorageMode.Local
-            ? (ArchiveAutomator.Interfaces.IStorageProvider)new LocalFileSystemProvider()
-            : new BoxApiProvider();
-
-        _orchestrator = new OrchestratorService(provider, _sessionService!, loggingService);
-        _cts          = new CancellationTokenSource();
-
+        // Set UI state before the try so the finally always has a clean IsRunning=false to reset to.
         IsRunning     = true;
         IsPaused      = false;
         ProgressValue = 0;
-
-        int pendingCount = Jobs.Count(j => j.State == JobState.Pending);
-        AppendLog($"Starting {OperationMode} run — {pendingCount} job(s) pending.  Log: {Path.GetFileName(_lastLogPath)}");
-
-        var progress = new Progress<OrchestratorProgress>(p =>
-        {
-            ProgressValue = (double)p.Completed / p.Total * 100;
-            AppendLog(p.Message);
-            // No manual Jobs notification needed — JobItem now implements
-            // INotifyPropertyChanged, so the DataGrid updates cells automatically
-            // as State and ErrorDetails change on each job object.
-        });
+        _cts          = new CancellationTokenSource();
 
         try
         {
+            // Everything from LoggingService creation onward is inside the try/catch so that
+            // any setup failure (bad path, disk full, etc.) is caught and shown in the log
+            // rather than escaping as an unhandled exception and terminating the app.
+            string runTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var loggingService  = new LoggingService(_logsDirectory, runTimestamp);
+            _lastLogPath        = loggingService.LogFilePath;
+
+            var manifest = new SessionManifest
+            {
+                Mode      = StorageMode,
+                Operation = OperationMode,
+                Jobs      = Jobs.ToList()
+            };
+
+            var provider = StorageMode == StorageMode.Local
+                ? (ArchiveAutomator.Interfaces.IStorageProvider)new LocalFileSystemProvider()
+                : new BoxApiProvider();
+
+            _orchestrator = new OrchestratorService(provider, _sessionService!, loggingService);
+
+            int pendingCount = Jobs.Count(j => j.State == JobState.Pending);
+            AppendLog($"Starting {OperationMode} run — {pendingCount} job(s) pending.  Log: {Path.GetFileName(_lastLogPath)}");
+
+            var progress = new Progress<OrchestratorProgress>(p =>
+            {
+                ProgressValue = (double)p.Completed / p.Total * 100;
+                AppendLog(p.Message);
+                // No manual Jobs notification needed — JobItem now implements
+                // INotifyPropertyChanged, so the DataGrid updates cells automatically
+                // as State and ErrorDetails change on each job object.
+            });
+
             await _orchestrator.RunAsync(manifest, SourceFolderPath, ArchiveFolderPath, progress, _cts.Token);
             AppendLog("Run complete.");
             OfferToOpenLog();
@@ -536,7 +551,7 @@ public class MainViewModel : ViewModelBase
         finally
         {
             IsRunning = false;
-            _cts.Dispose();
+            _cts?.Dispose();
             _cts = null;
         }
     }
