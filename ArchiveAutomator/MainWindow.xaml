@@ -63,7 +63,7 @@
         <Grid Margin="12 8 12 0">
             <Grid.ColumnDefinitions>
                 <!-- Left: settings panel — user can drag to widen -->
-                <ColumnDefinition Width="360" MinWidth="280"/>
+                <ColumnDefinition Width="420" MinWidth="280"/>
                 <!-- Vertical splitter -->
                 <ColumnDefinition Width="6"/>
                 <!-- Right: jobs + log — fills remaining space -->
