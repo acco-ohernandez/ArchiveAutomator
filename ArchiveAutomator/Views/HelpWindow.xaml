@@ -132,6 +132,7 @@
                         <TextBlock Style="{StaticResource Bullet}" Text="•  Session persistence — resume an interrupted run from where it left off"/>
                         <TextBlock Style="{StaticResource Bullet}" Text="•  Named Settings Profiles — save and reload complete configurations instantly"/>
                         <TextBlock Style="{StaticResource Bullet}" Text="•  Per-run CSV audit log written after every operation"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Automatic startup cleanup — keeps only the newest N log and session files"/>
                         <TextBlock Style="{StaticResource Bullet}" Text="•  Pause and Cancel support during a live run"/>
 
                         <Separator Style="{StaticResource Rule}"/>
@@ -464,6 +465,8 @@
                         </Border>
                         <TextBlock Style="{StaticResource Note}"
                                    Text="The Box Client Secret is intentionally never saved — re-enter it each session."/>
+                        <TextBlock Style="{StaticResource Note}"
+                                   Text="Tip: use Edit → Open Settings File… to open settings.json directly in your default text editor."/>
 
                         <TextBlock Style="{StaticResource H2}" Text="Named Profiles"/>
                         <TextBlock Style="{StaticResource Body}">
@@ -513,6 +516,22 @@
                         <TextBlock Style="{StaticResource Body}">
                             Log columns: <Run FontFamily="Consolas" FontSize="11">Timestamp, JobID, Mode, Operation, Source, Destination, Result, ErrorDetails</Run>
                         </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <TextBlock Style="{StaticResource H2}" Text="Cleanup Settings"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Each run creates a new log file and session file on disk. Over time these accumulate. Archive
+                            Automator automatically removes the oldest files at startup to keep the directories tidy.
+                            The limits are configurable in the collapsed
+                            <Run FontWeight="SemiBold">Cleanup Settings</Run> section in the left panel.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Max log files — maximum number of log_*.csv files to retain (default: 100)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Max session files — maximum number of session_*.json files to retain (default: 100)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Files beyond the limit are deleted at startup; the newest files are always kept"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Cleanup results appear in the Execution Log on startup (only when files are deleted)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The minimum value for either field is 1"/>
+                        <TextBlock Style="{StaticResource Note}"
+                                   Text="Cleanup runs after settings are loaded, so changes you save are always applied on the very next launch."/>
 
                     </StackPanel>
                 </ScrollViewer>

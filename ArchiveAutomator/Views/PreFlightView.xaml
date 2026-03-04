@@ -14,10 +14,10 @@
               SelectionMode="Single">
 
         <DataGrid.Columns>
-            <DataGridTextColumn Header="Job Number" Binding="{Binding JobNumber}" Width="160"/>
-            <DataGridTextColumn Header="Folder Name" Binding="{Binding FolderName}" Width="*"/>
-            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="100">
+            <DataGridTextColumn Header="Job Number" Binding="{Binding JobNumber}" Width="130"/>
+            <DataGridTextColumn Header="Folder Name" Binding="{Binding FolderName}" Width="200"/>
+            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="70"/>
+            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="70">
                 <DataGridTextColumn.ElementStyle>
                     <Style TargetType="TextBlock">
                         <Style.Triggers>
@@ -36,7 +36,7 @@
                     </Style>
                 </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
-            <DataGridTextColumn Header="Error" Binding="{Binding ErrorDetails}" Width="260"/>
+            <DataGridTextColumn Header="Error" Binding="{Binding ErrorDetails}" Width="*"/>
         </DataGrid.Columns>
     </DataGrid>
 </UserControl>

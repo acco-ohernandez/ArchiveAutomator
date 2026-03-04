@@ -62,7 +62,7 @@ Runtime data (all in user profile — never in the application folder, no elevat
 
 **`SessionManifest`** — `RunId` (GUID), `StartedAt` (ISO8601), `Mode`, `Operation`, `List<JobItem>`. Written to `%LocalAppData%\ArchiveAutomator\Sessions\session_[RunId].json`; updated after every individual operation.
 
-**`PersistedSettings`** (in `SettingsService.cs`) — `CsvFilePath`, `SourceFolderPath`, `ArchiveFolderPath`, `StorageMode`, `OperationMode`, `SelectedJobNumberColumn`, `SelectedStatusColumn`, `TriggerValue`, `BoxClientId`. Saved to `%AppData%\ArchiveAutomator\settings.json`. **`BoxClientSecret` is intentionally NOT persisted.**
+**`PersistedSettings`** (in `SettingsService.cs`) — `CsvFilePath`, `SourceFolderPath`, `ArchiveFolderPath`, `StorageMode`, `OperationMode`, `SelectedJobNumberColumn`, `SelectedStatusColumn`, `TriggerValue`, `BoxClientId`, `MaxLogFiles` (default 100), `MaxSessionFiles` (default 100). Saved to `%AppData%\ArchiveAutomator\settings.json`. **`BoxClientSecret` is intentionally NOT persisted.**
 
 ### Critical design rules
 
@@ -89,6 +89,17 @@ One file per run; named `log_yyyyMMdd_HHmmss.csv` in `%LocalAppData%\ArchiveAuto
 1. **Auto-save** (`settings.json`) — saves to `%AppData%\ArchiveAutomator\settings.json` on every property change. Loaded on startup **only when no resumable session was declined** (see Resume logic below).
 2. **Named profiles** (`profiles\*.json`) — explicit Save/Load via the Settings Profile section. Stored in `%AppData%\ArchiveAutomator\profiles\{name}.json`. `ListProfiles()` scans the folder; `SanitizeName()` strips illegal filename chars.
 
+### Startup cleanup
+`RunStartupCleanup()` is called at the end of the constructor — after `LoadSettings`/`ApplySession` — so user-configured limits are always respected. `DeleteOldestFiles(dir, pattern, maxKeep)` sorts by `LastWriteTime` descending, skips the newest `maxKeep`, deletes the rest. Results logged to Execution Log (only when files are deleted).
+- `_settingsFilePath` — `static readonly` field holding `%AppData%\ArchiveAutomator\settings.json`; used by `OpenSettingsFileCommand`.
+
+**Cleanup Settings — draft/committed pattern:**
+The Cleanup Settings TextBoxes are bound to *draft* properties (`MaxLogFilesDraft`, `MaxSessionFilesDraft`). These update freely as the user types without calling `SaveSettings()`. The *committed* backing fields (`_maxLogFiles`, `_maxSessionFiles`) are what `RunStartupCleanup()` and `SaveSettings()` use.
+- **Apply** (`ApplyCleanupCommand`) — enabled only when `IsCleanupDirty` (draft ≠ committed). Copies draft → committed, calls `SaveSettings()`, disables itself.
+- **Reset to 100** (`ResetCleanupCommand`) — always enabled. Sets all four fields to 100, fires property notifications, calls `SaveSettings()` immediately. Apply becomes disabled because draft == committed.
+- **`ClearAll()`** — does NOT touch cleanup limits (draft or committed). The user is the only one who changes those values.
+- **`ApplySettings()`** — syncs draft fields to committed after loading from disk/profile so the TextBoxes always reflect the saved values and Apply starts disabled.
+
 ### Resume dialog behaviour
 - **No session found** → auto-load last settings normally.
 - **Session found, user clicks Yes** → auto-load settings (paths/columns), then overlay Mode/Operation/Jobs from the manifest on top.
@@ -101,8 +112,9 @@ Two-panel layout with a vertical `GridSplitter` between left and right.
 
 **Outer `DockPanel`**: Menu (Top) → StatusBar (Bottom) → Action bar (Bottom) → main Grid fills rest.
 
-**Menu bar** — two top-level items:
-- `_File`: New Run · Open Logs Folder · Open Last Log · **Open Sessions Folder**
+**Menu bar** — three top-level items:
+- `_File`: New Run · Open Logs Folder · Open Last Log · Open Sessions Folder
+- `_Edit`: **Open Settings File…** (opens `settings.json` in default text editor; enabled only when file exists)
 - `_Help`: **User Guide…** (opens HelpWindow non-blocking) · **About Archive Automator** (MessageBox)
 
 **Left panel** (`ScrollViewer` → `StackPanel` of `Expander` sections, initial width 420 px, draggable):
@@ -111,6 +123,7 @@ Two-panel layout with a vertical `GridSplitter` between left and right.
 - Job List File — path TextBox + Browse button
 - Column Mapping (`MappingView`, vertical 3-row layout)
 - Folder Paths (`PathsView`; Archive row hidden when Delete mode)
+- Cleanup Settings (`IsExpanded="False"`) — Max log files TextBox + Max session files TextBox + hint row + Apply button (grayed until draft ≠ committed) + Reset to 100 button (saves immediately)
 
 **Vertical `GridSplitter`** (6 px) between columns — drag to resize left/right panels.
 
@@ -147,11 +160,14 @@ Two-panel layout with a vertical `GridSplitter` between left and right.
 | `OpenLogsFolderCommand` | _logsDirectory exists | Opens Logs folder in Explorer |
 | `OpenLastLogCommand` | _lastLogPath exists | Opens last log CSV |
 | `OpenSessionsFolderCommand` | _sessionsDirectory exists | Opens Sessions folder in Explorer |
-| `ClearAllCommand` | !IsRunning | Resets all fields + auto-save |
+| `ClearAllCommand` | !IsRunning | Resets all fields + auto-save (cleanup limits untouched) |
 | `SaveProfileCommand` | ProfileName non-empty | Saves named profile |
 | `LoadProfileCommand` | ProfileName non-empty | Loads named profile |
 | `ShowHelpCommand` | always | Opens HelpWindow (non-blocking `.Show()`) |
 | `ShowAboutCommand` | always | Shows About MessageBox |
+| `OpenSettingsFileCommand` | settings.json exists | Opens settings.json in default text editor |
+| `ApplyCleanupCommand` | `IsCleanupDirty` | Commits draft cleanup limits and saves to disk |
+| `ResetCleanupCommand` | always | Resets both cleanup limits to 100 and saves to disk |
 
 ### Known namespace conflicts (UseWindowsForms=true)
 | Ambiguous type | Fix |

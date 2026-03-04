@@ -42,7 +42,7 @@
                  VerticalContentAlignment="Center" Padding="4 2">
             <TextBox.Style>
                 <Style TargetType="TextBox">
-                    <Setter Property="IsReadOnly" Value="True"/>
+                    <Setter Property="IsReadOnly" Value="False"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
                             <Setter Property="IsReadOnly" Value="False"/>
@@ -86,7 +86,7 @@
                  Visibility="{Binding IsDeleteMode, Converter={StaticResource InverseBoolVisibilityConverter}}">
             <TextBox.Style>
                 <Style TargetType="TextBox">
-                    <Setter Property="IsReadOnly" Value="True"/>
+                    <Setter Property="IsReadOnly" Value="False"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
                             <Setter Property="IsReadOnly" Value="False"/>

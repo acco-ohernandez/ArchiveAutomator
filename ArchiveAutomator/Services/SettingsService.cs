@@ -20,6 +20,10 @@ public class PersistedSettings
     public string TriggerValue { get; set; } = "Closed";
     public string BoxClientId { get; set; } = string.Empty;
     // BoxClientSecret is intentionally NOT persisted for security
+
+    // Startup cleanup limits — files older than these counts are removed at launch
+    public int MaxLogFiles     { get; set; } = 100;
+    public int MaxSessionFiles { get; set; } = 100;
 }
 
 public class SettingsService

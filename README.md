@@ -231,6 +231,9 @@ the application — no manual action required.
 %AppData%\ArchiveAutomator\settings.json
 ```
 
+> **Tip**: Use **Edit → Open Settings File…** to open `settings.json` directly in your
+> default text editor (Notepad, VS Code, etc.).
+
 ### Named Profiles
 
 Named profiles let you switch between complete configurations instantly.
@@ -293,6 +296,25 @@ Access logs quickly via the menu:
 - **File → Open Logs Folder** — opens the Logs directory in File Explorer
 - **File → Open Last Log** — opens the most recent log file directly
 - **File → Open Sessions Folder** — opens the Sessions directory in File Explorer
+
+---
+
+## Cleanup Settings
+
+Each run creates a new log file and a new session file on disk. To prevent unbounded growth,
+Archive Automator automatically removes the oldest files at startup.
+
+The limits are configurable in the collapsed **Cleanup Settings** section in the left panel:
+
+| Field | Default | Description |
+|---|---|---|
+| **Max log files** | 100 | Maximum `log_*.csv` files to keep |
+| **Max session files** | 100 | Maximum `session_*.json` files to keep |
+
+- Files beyond the limit are deleted at startup; the **newest** files are always kept
+- Cleanup results appear in the **Execution Log** on startup (only printed when files are deleted)
+- The minimum value for either field is 1
+- Cleanup runs **after** settings are loaded, so changes take effect on the very next launch
 
 ---
 

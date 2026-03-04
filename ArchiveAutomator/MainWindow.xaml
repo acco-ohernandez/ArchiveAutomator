@@ -6,7 +6,8 @@
         xmlns:vm="clr-namespace:ArchiveAutomator.ViewModels"
         xmlns:views="clr-namespace:ArchiveAutomator.Views"
         mc:Ignorable="d"
-        Title="Archive Automator By:ORHernandez" Height="840" Width="1100"
+        WindowStartupLocation="CenterScreen"
+        Title="Archive Automator By:ORHernandez" Height="880" Width="1200"
         MinHeight="600" MinWidth="860">
 
     <Window.DataContext>
@@ -31,6 +32,11 @@
                           Command="{Binding OpenLastLogCommand}"/>
                 <MenuItem Header="Open _Sessions Folder"
                           Command="{Binding OpenSessionsFolderCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="Open _Settings File…"
+                          Command="{Binding OpenSettingsFileCommand}"
+                          ToolTip="Opens settings.json in your default text editor (%AppData%\ArchiveAutomator\settings.json)"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_User Guide…"
@@ -244,7 +250,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0"
                                      Text="{Binding CsvFilePath, UpdateSourceTrigger=PropertyChanged}"
-                                     IsReadOnly="True" VerticalContentAlignment="Center" Padding="4 2"
+                                     IsReadOnly="False" VerticalContentAlignment="Center" Padding="4 2"
                                      ToolTip="{Binding CsvFilePath}"/>
                             <Button  Grid.Column="1" Content="Browse…"
                                      Command="{Binding BrowseCsvCommand}"
@@ -260,6 +266,58 @@
                     <!-- ─────────── Section: Folder Paths ─────────── -->
                     <Expander Style="{StaticResource SectionExpander}" Header="Folder Paths">
                         <views:PathsView Margin="0 2 0 0"/>
+                    </Expander>
+
+                    <!-- ─────────── Section: Cleanup Settings ──────── -->
+                    <Expander Style="{StaticResource SectionExpander}" Header="Cleanup Settings"
+                              IsExpanded="False">
+                        <Grid Margin="0 2 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="8"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="8"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Max log files:"
+                                       VerticalAlignment="Center"/>
+                            <TextBox   Grid.Row="0" Grid.Column="1"
+                                       Text="{Binding MaxLogFilesDraft, UpdateSourceTrigger=PropertyChanged}"
+                                       Padding="4 2" VerticalContentAlignment="Center"
+                                       ToolTip="Maximum number of log files to keep. Click Apply to save."/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Max session files:"
+                                       VerticalAlignment="Center"/>
+                            <TextBox   Grid.Row="2" Grid.Column="1"
+                                       Text="{Binding MaxSessionFilesDraft, UpdateSourceTrigger=PropertyChanged}"
+                                       Padding="4 2" VerticalContentAlignment="Center"
+                                       ToolTip="Maximum number of session files to keep. Click Apply to save."/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
+                                       FontSize="10" Foreground="Gray" TextWrapping="Wrap"
+                                       Text="At startup, files beyond these limits are removed (newest kept). Results appear in the Execution Log."/>
+
+                            <!-- Apply (enabled only when draft ≠ committed) and Reset buttons -->
+                            <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3"
+                                        Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Apply"
+                                        Command="{Binding ApplyCleanupCommand}"
+                                        Padding="10 3" Margin="0 0 6 0"
+                                        ToolTip="Save the current limits to settings.json."/>
+                                <Button Content="Reset"
+                                        Command="{Binding ResetCleanupCommand}"
+                                        Padding="10 3"
+                                        ToolTip="Reset both limits to 100 and save immediately."/>
+                            </StackPanel>
+                        </Grid>
                     </Expander>
 
                 </StackPanel>

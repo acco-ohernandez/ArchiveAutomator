@@ -25,6 +25,22 @@ public class MainViewModel : ViewModelBase
     private string _sessionsDirectory = string.Empty;
     private string _lastLogPath       = string.Empty;
 
+    // Committed cleanup limits — what RunStartupCleanup() uses and what is written to settings.json.
+    // Only updated when the user clicks Apply or Reset; never touched by ClearAll.
+    private int _maxLogFiles     = 100;
+    private int _maxSessionFiles = 100;
+
+    // Draft cleanup limits — bound to the Cleanup Settings TextBoxes.
+    // Typing changes these without saving; Apply commits them; Reset snaps both to 100 and saves.
+    private int _maxLogFilesDraft     = 100;
+    private int _maxSessionFilesDraft = 100;
+
+    // Path to the auto-saved settings file — used by OpenSettingsFileCommand.
+    private static readonly string _settingsFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ArchiveAutomator",
+        "settings.json");
+
     // StringBuilder backing for LogText — avoids O(n²) string allocation on every AppendLog call.
     private readonly StringBuilder _logBuffer = new();
 
@@ -144,6 +160,38 @@ public class MainViewModel : ViewModelBase
         (_operationMode == OperationMode.Delete || !string.IsNullOrWhiteSpace(_archiveFolderPath));
     public bool IsDeleteMode => OperationMode == OperationMode.Delete;
 
+    // Draft properties — bound to the TextBoxes.  Typing updates these; Apply/Reset commit them.
+    public int MaxLogFilesDraft
+    {
+        get => _maxLogFilesDraft;
+        set
+        {
+            if (Set(ref _maxLogFilesDraft, Math.Max(1, value)))
+            {
+                OnPropertyChanged(nameof(IsCleanupDirty));
+                ApplyCleanupCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    public int MaxSessionFilesDraft
+    {
+        get => _maxSessionFilesDraft;
+        set
+        {
+            if (Set(ref _maxSessionFilesDraft, Math.Max(1, value)))
+            {
+                OnPropertyChanged(nameof(IsCleanupDirty));
+                ApplyCleanupCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>True when draft values differ from committed values — drives Apply button.</summary>
+    public bool IsCleanupDirty =>
+        _maxLogFilesDraft     != _maxLogFiles ||
+        _maxSessionFilesDraft != _maxSessionFiles;
+
     // ── Settings profile properties ────────────────────────────────────────
 
     private string _profileName = string.Empty;
@@ -178,6 +226,9 @@ public class MainViewModel : ViewModelBase
     public RelayCommand ShowHelpCommand { get; }
     public RelayCommand ShowAboutCommand { get; }
     public RelayCommand OpenSessionsFolderCommand { get; }
+    public RelayCommand OpenSettingsFileCommand { get; }
+    public RelayCommand ApplyCleanupCommand { get; }
+    public RelayCommand ResetCleanupCommand { get; }
 
     public MainViewModel()
     {
@@ -202,6 +253,10 @@ public class MainViewModel : ViewModelBase
         ShowAboutCommand       = new RelayCommand(ShowAbout);
         OpenSessionsFolderCommand = new RelayCommand(OpenSessionsFolder,
             () => !string.IsNullOrEmpty(_sessionsDirectory) && Directory.Exists(_sessionsDirectory));
+        OpenSettingsFileCommand   = new RelayCommand(OpenSettingsFile,
+            () => File.Exists(_settingsFilePath));
+        ApplyCleanupCommand = new RelayCommand(ApplyCleanup, () => IsCleanupDirty);
+        ResetCleanupCommand = new RelayCommand(ResetCleanup);
 
         InitServices();
         RefreshProfiles();
@@ -219,6 +274,9 @@ public class MainViewModel : ViewModelBase
 
         if (sessionResult == SessionCheckResult.Resumed && sessionManifest != null)
             ApplySession(sessionManifest);  // overlays Mode/Operation/Jobs from manifest
+
+        // Cleanup runs LAST so it always uses the values loaded from settings above.
+        RunStartupCleanup();
     }
 
     // ── Initialization ─────────────────────────────────────────────────────
@@ -315,6 +373,12 @@ public class MainViewModel : ViewModelBase
         _operationMode    = s.OperationMode;
         _triggerValue     = s.TriggerValue;
         _boxClientId      = s.BoxClientId;
+        _maxLogFiles          = Math.Max(1, s.MaxLogFiles);
+        _maxSessionFiles      = Math.Max(1, s.MaxSessionFiles);
+        // Sync draft to committed so the TextBoxes reflect the loaded values
+        // and the Apply button starts disabled (nothing has changed yet).
+        _maxLogFilesDraft     = _maxLogFiles;
+        _maxSessionFilesDraft = _maxSessionFiles;
 
         // Populate AvailableColumns BEFORE notifying column selections so that
         // the ComboBox items exist when the binding resolves.
@@ -336,6 +400,10 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(BoxClientId));
         OnPropertyChanged(nameof(IsBoxMode));
         OnPropertyChanged(nameof(CanAuthenticate));
+        OnPropertyChanged(nameof(MaxLogFilesDraft));
+        OnPropertyChanged(nameof(MaxSessionFilesDraft));
+        OnPropertyChanged(nameof(IsCleanupDirty));
+        ApplyCleanupCommand?.RaiseCanExecuteChanged();
     }
 
     private void SaveSettings()
@@ -350,7 +418,9 @@ public class MainViewModel : ViewModelBase
             SelectedJobNumberColumn = _selectedJobNumberColumn,
             SelectedStatusColumn    = _selectedStatusColumn,
             TriggerValue            = _triggerValue,
-            BoxClientId             = _boxClientId
+            BoxClientId             = _boxClientId,
+            MaxLogFiles             = _maxLogFiles,
+            MaxSessionFiles         = _maxSessionFiles
         });
     }
 
@@ -378,7 +448,9 @@ public class MainViewModel : ViewModelBase
             SelectedJobNumberColumn = _selectedJobNumberColumn,
             SelectedStatusColumn    = _selectedStatusColumn,
             TriggerValue            = _triggerValue,
-            BoxClientId             = _boxClientId
+            BoxClientId             = _boxClientId,
+            MaxLogFiles             = _maxLogFiles,
+            MaxSessionFiles         = _maxSessionFiles
         });
 
         RefreshProfiles();
@@ -634,6 +706,8 @@ public class MainViewModel : ViewModelBase
         _triggerValue            = "Closed";
         _boxClientId             = string.Empty;
         _profileName             = string.Empty;
+        // Cleanup limits are intentionally NOT reset here — the user sets those
+        // manually via Apply/Reset and they persist independently of New Run.
 
         OnPropertyChanged(nameof(CsvFilePath));
         OnPropertyChanged(nameof(SourceFolderPath));
@@ -651,6 +725,39 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanStart));
 
         // Wipe the last-used auto-save so next launch also starts fresh
+        SaveSettings();
+    }
+
+    // ── Cleanup Settings Apply / Reset ─────────────────────────────────────
+
+    /// <summary>
+    /// Commits draft cleanup limits to the settled values and saves to disk.
+    /// Called by ApplyCleanupCommand (only enabled when IsCleanupDirty).
+    /// </summary>
+    private void ApplyCleanup()
+    {
+        _maxLogFiles     = _maxLogFilesDraft;
+        _maxSessionFiles = _maxSessionFilesDraft;
+        SaveSettings();
+        OnPropertyChanged(nameof(IsCleanupDirty));
+        ApplyCleanupCommand.RaiseCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Resets both draft and committed cleanup limits to 100 and saves to disk immediately.
+    /// No separate Apply click is needed — the Apply button will become disabled
+    /// because draft == committed == 100 after this call.
+    /// </summary>
+    private void ResetCleanup()
+    {
+        _maxLogFilesDraft     = 100;
+        _maxSessionFilesDraft = 100;
+        _maxLogFiles          = 100;
+        _maxSessionFiles      = 100;
+        OnPropertyChanged(nameof(MaxLogFilesDraft));
+        OnPropertyChanged(nameof(MaxSessionFilesDraft));
+        OnPropertyChanged(nameof(IsCleanupDirty));
+        ApplyCleanupCommand.RaiseCanExecuteChanged();
         SaveSettings();
     }
 
@@ -682,6 +789,49 @@ public class MainViewModel : ViewModelBase
             Process.Start(new ProcessStartInfo(_lastLogPath) { UseShellExecute = true });
     }
 
+    // ── Startup cleanup ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Deletes the oldest log and session files beyond the configured limits.
+    /// Called once at startup, after settings are loaded, so the configured
+    /// limits are always respected.  Results are reported in the Execution Log.
+    /// </summary>
+    private void RunStartupCleanup()
+    {
+        int deletedLogs     = DeleteOldestFiles(_logsDirectory,     "log_*.csv",      _maxLogFiles);
+        int deletedSessions = DeleteOldestFiles(_sessionsDirectory, "session_*.json", _maxSessionFiles);
+
+        if (deletedLogs > 0)
+            AppendLog($"Startup cleanup: removed {deletedLogs} old log file(s) — kept newest {_maxLogFiles}.");
+        if (deletedSessions > 0)
+            AppendLog($"Startup cleanup: removed {deletedSessions} old session file(s) — kept newest {_maxSessionFiles}.");
+    }
+
+    /// <summary>
+    /// Keeps the <paramref name="maxKeep"/> newest files matching <paramref name="pattern"/>
+    /// in <paramref name="directory"/> and deletes the rest.
+    /// Returns the number of files actually deleted.
+    /// </summary>
+    private static int DeleteOldestFiles(string directory, string pattern, int maxKeep)
+    {
+        if (!Directory.Exists(directory)) return 0;
+
+        var files = Directory.GetFiles(directory, pattern)
+            .Select(f => new FileInfo(f))
+            .OrderByDescending(f => f.LastWriteTime)
+            .ToList();
+
+        if (files.Count <= maxKeep) return 0;
+
+        int deleted = 0;
+        foreach (var file in files.Skip(maxKeep))
+        {
+            try   { file.Delete(); deleted++; }
+            catch { /* skip any file that is locked or inaccessible */ }
+        }
+        return deleted;
+    }
+
     // ── Help / About ───────────────────────────────────────────────────────
 
     private static void ShowHelp()
@@ -706,6 +856,12 @@ public class MainViewModel : ViewModelBase
     {
         if (Directory.Exists(_sessionsDirectory))
             Process.Start(new ProcessStartInfo(_sessionsDirectory) { UseShellExecute = true });
+    }
+
+    private static void OpenSettingsFile()
+    {
+        if (File.Exists(_settingsFilePath))
+            Process.Start(new ProcessStartInfo(_settingsFilePath) { UseShellExecute = true });
     }
 
     // ── Logging ────────────────────────────────────────────────────────────
