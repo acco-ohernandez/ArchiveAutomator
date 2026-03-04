@@ -1,0 +1,647 @@
+<Window x:Class="ArchiveAutomator.Views.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Archive Automator — User Guide"
+        Height="680" Width="860"
+        MinHeight="500" MinWidth="640"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+
+        <!-- ── Typography ─────────────────────────────────────────────── -->
+
+        <Style x:Key="H1" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="17"/>
+            <Setter Property="FontWeight"   Value="Bold"/>
+            <Setter Property="Foreground"   Value="#1A3F6F"/>
+            <Setter Property="Margin"       Value="0 0 0 8"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="H2" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="13"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="Foreground"   Value="#2B2B2B"/>
+            <Setter Property="Margin"       Value="0 14 0 4"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="Body" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="Foreground"   Value="#444444"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight"   Value="20"/>
+            <Setter Property="Margin"       Value="0 0 0 6"/>
+        </Style>
+
+        <Style x:Key="Bullet" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="Foreground"   Value="#444444"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight"   Value="20"/>
+            <Setter Property="Margin"       Value="16 0 0 3"/>
+        </Style>
+
+        <Style x:Key="Note" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="Foreground"   Value="#777777"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin"       Value="0 0 0 6"/>
+            <Setter Property="FontStyle"    Value="Italic"/>
+        </Style>
+
+        <!-- ── Code block ─────────────────────────────────────────────── -->
+
+        <Style x:Key="CodeBlock" TargetType="Border">
+            <Setter Property="Background"      Value="#F4F4F4"/>
+            <Setter Property="BorderBrush"     Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"    Value="3"/>
+            <Setter Property="Padding"         Value="12 8"/>
+            <Setter Property="Margin"          Value="0 4 0 10"/>
+        </Style>
+
+        <Style x:Key="Code" TargetType="TextBlock">
+            <Setter Property="FontFamily"   Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize"     Value="11.5"/>
+            <Setter Property="Foreground"   Value="#2B2B2B"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin"       Value="0 1 0 1"/>
+        </Style>
+
+        <!-- ── Divider ────────────────────────────────────────────────── -->
+
+        <Style x:Key="Rule" TargetType="Separator">
+            <Setter Property="Margin"     Value="0 10 0 4"/>
+            <Setter Property="Height"     Value="1"/>
+            <Setter Property="Background" Value="#E2E2E2"/>
+        </Style>
+
+        <!-- ── Numbered step badge ────────────────────────────────────── -->
+
+        <Style x:Key="StepBadge" TargetType="Border">
+            <Setter Property="Background"       Value="#1A3F6F"/>
+            <Setter Property="CornerRadius"     Value="11"/>
+            <Setter Property="Width"            Value="22"/>
+            <Setter Property="Height"           Value="22"/>
+            <Setter Property="Margin"           Value="0 2 10 0"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             TAB CONTROL
+        ══════════════════════════════════════════════════════════════════ -->
+        <TabControl Grid.Row="0" Margin="8 8 8 0"
+                    Background="White"
+                    BorderBrush="#CCCCCC" BorderThickness="1">
+
+            <!-- ═══════════════════════ OVERVIEW ══════════════════════ -->
+            <TabItem Header="  Overview  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24 18 24 18">
+                    <StackPanel>
+
+                        <TextBlock Style="{StaticResource H1}" Text="Archive Automator"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Archive Automator automates the movement, copying, or deletion of project folders based on a
+                            job list spreadsheet. Instead of manually relocating hundreds of folders one by one, you provide
+                            a CSV or Excel file, map the relevant columns, and let the tool process every matching job in a
+                            single unattended run.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <TextBlock Style="{StaticResource H2}" Text="Key Features"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Load job lists from CSV, XLSX, or XLSM files"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Three operations: Move, Copy, or Delete"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Two storage backends: Local File System and Box.com (OAuth 2.0 API)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Automatic retry with exponential back-off for Box API rate limits (HTTP 429 / 5xx)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Cross-drive Move — recursive copy → verify file count → delete source"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Locked-file detection — skips in-use folders and marks them Failed, never crashes"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Session persistence — resume an interrupted run from where it left off"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Named Settings Profiles — save and reload complete configurations instantly"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Per-run CSV audit log written after every operation"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Pause and Cancel support during a live run"/>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <TextBlock Style="{StaticResource H2}" Text="Storage Modes"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            <Run FontWeight="SemiBold">Local File System</Run> — Operates on folders on your machine or any
+                            mapped network drive (UNC paths work too). Supports Move, Copy, and Delete. Cross-drive moves
+                            are detected and handled automatically.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Body}">
+                            <Run FontWeight="SemiBold">Box.com (API)</Run> — Operates on folders inside Box using the official
+                            Box API. Requires a Box developer application with OAuth 2.0 credentials (one-time setup). See
+                            the <Run FontStyle="Italic">Box.com Setup</Run> tab for step-by-step instructions.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <TextBlock Style="{StaticResource H2}" Text="Data Locations"/>
+                        <TextBlock Style="{StaticResource Body}" Text="All runtime data is stored in your user profile — no administrator rights required:"/>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Code}" Text="%LocalAppData%\ArchiveAutomator\Logs\       per-run CSV audit logs"/>
+                                <TextBlock Style="{StaticResource Code}" Text="%LocalAppData%\ArchiveAutomator\Sessions\   session resume manifests"/>
+                                <TextBlock Style="{StaticResource Code}" Text="%AppData%\ArchiveAutomator\settings.json    auto-saved settings"/>
+                                <TextBlock Style="{StaticResource Code}" Text="%AppData%\ArchiveAutomator\profiles\        named settings profiles"/>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ═══════════════════════ QUICK START ═══════════════════ -->
+            <TabItem Header="  Quick Start  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24 18 24 18">
+                    <StackPanel>
+
+                        <TextBlock Style="{StaticResource H1}" Text="Quick Start"/>
+
+                        <!-- Step 1 -->
+                        <DockPanel Margin="0 10 0 0">
+                            <Border Style="{StaticResource StepBadge}" DockPanel.Dock="Left">
+                                <TextBlock Text="1" Foreground="White" FontWeight="Bold" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Margin="0 0 0 4"
+                                           Text="Choose Storage Mode and Operation"/>
+                                <TextBlock Style="{StaticResource Body}">
+                                    In the <Run FontWeight="SemiBold">Mode</Run> section, select
+                                    <Run FontStyle="Italic">Local File System</Run> or
+                                    <Run FontStyle="Italic">Box.com (API)</Run>, then choose an operation:
+                                    <Run FontStyle="Italic">Move</Run> (default),
+                                    <Run FontStyle="Italic">Copy</Run>, or
+                                    <Run FontStyle="Italic">Delete</Run>.
+                                    For Box mode, complete the one-time credential setup first (see Box.com Setup tab).
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Step 2 -->
+                        <DockPanel Margin="0 10 0 0">
+                            <Border Style="{StaticResource StepBadge}" DockPanel.Dock="Left">
+                                <TextBlock Text="2" Foreground="White" FontWeight="Bold" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Margin="0 0 0 4"
+                                           Text="Select Your Job List File"/>
+                                <TextBlock Style="{StaticResource Body}">
+                                    Click <Run FontWeight="SemiBold">Browse…</Run> in the
+                                    <Run FontWeight="SemiBold">Job List File</Run> section and pick your CSV, XLSX, or XLSM
+                                    spreadsheet. Column headers are read automatically and populate the mapping dropdowns.
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Step 3 -->
+                        <DockPanel Margin="0 10 0 0">
+                            <Border Style="{StaticResource StepBadge}" DockPanel.Dock="Left">
+                                <TextBlock Text="3" Foreground="White" FontWeight="Bold" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Margin="0 0 0 4"
+                                           Text="Map Columns and Set Trigger Value"/>
+                                <TextBlock Style="{StaticResource Body}">
+                                    In the <Run FontWeight="SemiBold">Column Mapping</Run> section, pick the
+                                    <Run FontStyle="Italic">Job Number column</Run> (used as the folder name),
+                                    the <Run FontStyle="Italic">Status column</Run> (used to filter rows), and the
+                                    <Run FontStyle="Italic">Trigger Value</Run> (e.g. "Closed").
+                                    Only rows whose Status matches the trigger are processed.
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Step 4 -->
+                        <DockPanel Margin="0 10 0 0">
+                            <Border Style="{StaticResource StepBadge}" DockPanel.Dock="Left">
+                                <TextBlock Text="4" Foreground="White" FontWeight="Bold" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Margin="0 0 0 4"
+                                           Text="Set Folder Paths"/>
+                                <TextBlock Style="{StaticResource Body}">
+                                    In the <Run FontWeight="SemiBold">Folder Paths</Run> section, set the
+                                    <Run FontStyle="Italic">Source Folder</Run> (where project folders currently live)
+                                    and the <Run FontStyle="Italic">Archive Folder</Run> (destination).
+                                    For Delete mode, only the Source Folder is required — the Archive field is hidden.
+                                    For Box mode, enter the Box <Run FontStyle="Italic">folder IDs</Run>
+                                    (not folder names) for both fields.
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Step 5 -->
+                        <DockPanel Margin="0 10 0 0">
+                            <Border Style="{StaticResource StepBadge}" DockPanel.Dock="Left">
+                                <TextBlock Text="5" Foreground="White" FontWeight="Bold" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Margin="0 0 0 4"
+                                           Text="Load and Review Jobs"/>
+                                <TextBlock Style="{StaticResource Body}">
+                                    Click <Run FontWeight="SemiBold">Load Jobs</Run>. The
+                                    <Run FontWeight="SemiBold">Matched Jobs (Pre-flight)</Run> panel on the right shows
+                                    every job that matched your trigger value. Review the list carefully — all items shown
+                                    will be processed when you start.
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Step 6 -->
+                        <DockPanel Margin="0 10 0 0">
+                            <Border Style="{StaticResource StepBadge}" DockPanel.Dock="Left">
+                                <TextBlock Text="6" Foreground="White" FontWeight="Bold" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Margin="0 0 0 4"
+                                           Text="Start the Run"/>
+                                <TextBlock Style="{StaticResource Body}">
+                                    Click <Run FontWeight="SemiBold">▶ Start</Run> in the
+                                    <Run FontWeight="SemiBold">Matched Jobs</Run> header. Progress appears in the
+                                    <Run FontWeight="SemiBold">Execution Log</Run> and the status bar shows a live
+                                    percentage. Each job updates to ✓ Success or ✗ Failed in real time.
+                                    When the run finishes you'll be offered the option to open the log file.
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <TextBlock Style="{StaticResource H2}" Text="Controls During a Run"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Pause  — waits for the current job to finish, then halts; the session is saved so you can resume later"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Cancel — stops as soon as possible; progress is preserved in the session manifest"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The status bar percentage updates after every completed job"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ═══════════════════════ JOB LIST FILE ═════════════════ -->
+            <TabItem Header="  Job List File  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24 18 24 18">
+                    <StackPanel>
+
+                        <TextBlock Style="{StaticResource H1}" Text="Job List File"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            The job list file tells Archive Automator which folders to process. It must contain at least
+                            two columns: one identifying the folder name (the job number) and one carrying the status value
+                            used to filter which rows are acted upon.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Supported Formats"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  CSV (.csv) — comma-separated, UTF-8 or ANSI encoding"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Excel (.xlsx) — standard Open XML workbook, first worksheet only"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Excel Macro-Enabled (.xlsm) — same as xlsx, macros are not executed"/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Required Columns"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            <Run FontWeight="SemiBold">Job Number Column</Run> — The value in this column becomes the
+                            subfolder name to look up. For Local mode, Archive Automator searches for an exact-name match
+                            (case-insensitive) inside the Source Folder. For Box mode, it finds the subfolder by name inside
+                            the parent Box folder and resolves it to a Box folder ID automatically.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Body}">
+                            <Run FontWeight="SemiBold">Status Column</Run> — Rows are processed only when this column's
+                            value matches the <Run FontStyle="Italic">Trigger Value</Run> exactly (case-sensitive).
+                            All other rows are silently skipped.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Example Spreadsheet"/>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Code}" Text="JobNumber  | Status   | Client      | Manager"/>
+                                <TextBlock Style="{StaticResource Code}" Text="---------- | -------- | ----------- | --------"/>
+                                <TextBlock Style="{StaticResource Code}" Text="10001      | Closed   | Acme Corp   | Smith     ← processed"/>
+                                <TextBlock Style="{StaticResource Code}" Text="10002      | Active   | Beta LLC    | Jones     ← skipped"/>
+                                <TextBlock Style="{StaticResource Code}" Text="10003      | Closed   | Gamma Inc   | Davis     ← processed"/>
+                                <TextBlock Style="{StaticResource Code}" Text="10004      | On Hold  | Delta Co    | Lee       ← skipped"/>
+                                <TextBlock Style="{StaticResource Code}" Text="10005      | Closed   | Epsilon Ltd | Kim       ← processed"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Style="{StaticResource Note}"
+                                   Text="Column Mapping: Job Number = 'JobNumber', Status = 'Status', Trigger = 'Closed'  →  jobs 10001, 10003, 10005 are queued."/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Folder Name Matching"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            The job number value is used as the subfolder name exactly as it appears in the spreadsheet.
+                            Matching is case-insensitive. If no matching subfolder is found, the job is marked
+                            <Run FontStyle="Italic">Failed</Run> with an explanatory message, and processing continues
+                            with the next job — a single missing folder never aborts the entire run.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Tips"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The file can contain any number of extra columns — only the two mapped columns are used"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The trigger value is case-sensitive ('Closed' ≠ 'closed')"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  For Excel files, ensure the file is not currently open in Excel — it will be locked"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Column headers must be on row 1; data starts on row 2"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Leading/trailing spaces in the job number value are preserved — make sure they match the actual folder name"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ═══════════════════════ BOX.COM SETUP ════════════════ -->
+            <TabItem Header="  Box.com Setup  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24 18 24 18">
+                    <StackPanel>
+
+                        <TextBlock Style="{StaticResource H1}" Text="Box.com Setup"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Box.com mode requires a Box developer application with OAuth 2.0 credentials. This is a
+                            one-time setup — credentials can be saved to a named profile so you don't need to re-enter
+                            the Client ID each session. The Client Secret is never saved to disk for security.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Step 1 — Create a Box Developer App"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="1.  Sign in at developer.box.com with your Box account"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="2.  Click My Apps → Create New App"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="3.  Select Custom App → User Authentication (OAuth 2.0)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="4.  Give the app a name (e.g. 'Archive Automator') and click Create App"/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Step 2 — Copy Your Credentials"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Go to your app's <Run FontWeight="SemiBold">Configuration</Run> tab. Under OAuth 2.0
+                            Credentials, copy the <Run FontWeight="SemiBold">Client ID</Run> and
+                            <Run FontWeight="SemiBold">Client Secret</Run>. Paste them into the corresponding fields in
+                            Archive Automator's <Run FontWeight="SemiBold">Mode</Run> section.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Step 3 — Register All Five Redirect URIs"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            On the same Configuration tab, scroll to <Run FontWeight="SemiBold">Redirect URIs</Run> and
+                            add all five entries below. Archive Automator automatically picks the first available port
+                            at runtime — registering all five prevents failures if any port is in use by another app.
+                        </TextBlock>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Code}" Text="http://localhost:49200/callback"/>
+                                <TextBlock Style="{StaticResource Code}" Text="http://localhost:49201/callback"/>
+                                <TextBlock Style="{StaticResource Code}" Text="http://localhost:49202/callback"/>
+                                <TextBlock Style="{StaticResource Code}" Text="http://localhost:49203/callback"/>
+                                <TextBlock Style="{StaticResource Code}" Text="http://localhost:49204/callback"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Style="{StaticResource Note}"
+                                   Text="Ports 49200–49204 are in the IANA dynamic/ephemeral range (49152–65535) and are unlikely to conflict with other applications."/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Step 4 — Authenticate in Archive Automator"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="1.  Paste your Client ID into the Client ID field"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="2.  Type your Client Secret into the Client Secret field"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="3.  Click Sign in with Box… — your default browser opens the Box authorization page"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="4.  Log in with your Box credentials and click Grant Access"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="5.  The browser shows 'Authentication complete.' — return to Archive Automator"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="6.  The ✓ Authenticated badge appears — you are ready to run"/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Finding Box Folder IDs"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            In Box mode, the <Run FontWeight="SemiBold">Source Folder</Run> and
+                            <Run FontWeight="SemiBold">Archive Folder</Run> fields must contain Box
+                            <Run FontStyle="Italic">folder IDs</Run>, not names or file paths. To find a folder's ID,
+                            open Box.com in your browser, navigate to the folder, and read the number after
+                            <Run FontFamily="Consolas">/folder/</Run> in the URL:
+                        </TextBlock>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <TextBlock Style="{StaticResource Code}"
+                                       Text="https://app.box.com/folder/368694270455   →   Folder ID = 368694270455"/>
+                        </Border>
+                        <TextBlock Style="{StaticResource Body}">
+                            Archive Automator automatically resolves each job's subfolder name to its Box ID before every
+                            operation — you never need to look up individual job folder IDs.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Security Notes"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The Client Secret is never written to disk — you must re-enter it each session"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Saving a Settings Profile stores the Client ID but intentionally omits the Secret"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  OAuth tokens are held in memory only and discarded when the application closes"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Authentication must be completed within 2 minutes or it times out safely"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ═══════════════════════ SETTINGS & PROFILES ═══════════ -->
+            <TabItem Header="  Settings &amp; Profiles  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24 18 24 18">
+                    <StackPanel>
+
+                        <TextBlock Style="{StaticResource H1}" Text="Settings &amp; Profiles"/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Auto-Save"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            All settings — file paths, column mappings, storage mode, operation, and Box Client ID —
+                            are saved automatically every time a field changes. These are restored the next time you
+                            launch the application, so your configuration is always ready without any manual action.
+                        </TextBlock>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <TextBlock Style="{StaticResource Code}"
+                                       Text="%AppData%\ArchiveAutomator\settings.json"/>
+                        </Border>
+                        <TextBlock Style="{StaticResource Note}"
+                                   Text="The Box Client Secret is intentionally never saved — re-enter it each session."/>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Named Profiles"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Named profiles let you switch between complete configurations instantly — ideal when you
+                            manage multiple clients or folder structures and want to avoid re-entering all settings each time.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Type a new name or pick an existing one in the Profile name field"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Click 💾 Save Settings to store the current configuration under that name"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Click 📂 Load Settings to restore a saved configuration"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Loading a profile also clears the job list and log, giving you a clean slate"/>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <TextBlock Style="{StaticResource Code}"
+                                       Text="%AppData%\ArchiveAutomator\profiles\{profile-name}.json"/>
+                        </Border>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Session Resume"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            If a run is interrupted — cancelled, app closed, or system restart — Archive Automator saves
+                            a session manifest after every individual completed job. When you relaunch, it detects the
+                            incomplete session and offers to resume from exactly where it stopped.
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Click Yes to reload the pending jobs and continue; settings are also restored"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Click No to start completely fresh — settings are NOT loaded either (fully blank slate)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Already-completed jobs are never retried"/>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <TextBlock Style="{StaticResource Code}"
+                                       Text="%LocalAppData%\ArchiveAutomator\Sessions\session_{RunId}.json"/>
+                        </Border>
+
+                        <TextBlock Style="{StaticResource H2}" Text="New Run — Clear All Fields"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Use <Run FontWeight="SemiBold">File → New Run</Run> or the button in the action bar to reset
+                            all fields and start fresh. This also clears the auto-saved settings file so the next launch
+                            starts completely blank. No files or folders on disk are moved or deleted by this action.
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource H2}" Text="Log Files"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Each run produces a separate CSV log file. Use
+                            <Run FontWeight="SemiBold">File → Open Logs Folder</Run> to browse all logs, or
+                            <Run FontWeight="SemiBold">File → Open Last Log</Run> to open the most recent one directly.
+                        </TextBlock>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <TextBlock Style="{StaticResource Code}"
+                                       Text="%LocalAppData%\ArchiveAutomator\Logs\log_yyyyMMdd_HHmmss.csv"/>
+                        </Border>
+                        <TextBlock Style="{StaticResource Body}">
+                            Log columns: <Run FontFamily="Consolas" FontSize="11">Timestamp, JobID, Mode, Operation, Source, Destination, Result, ErrorDetails</Run>
+                        </TextBlock>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ═══════════════════════ TROUBLESHOOTING ═══════════════ -->
+            <TabItem Header="  Troubleshooting  ">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24 18 24 18">
+                    <StackPanel>
+
+                        <TextBlock Style="{StaticResource H1}" Text="Troubleshooting"/>
+
+                        <!-- ── Issue 1 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Job marked Failed — 'locked or in use'"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            A folder could not be moved because another process has a file inside it open (File Explorer
+                            preview pane, Word, Outlook attachment, etc.). Close the application holding the file open and
+                            either re-run just that job or resume the session — already-successful jobs are never reprocessed.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 2 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Job marked Failed — 'not found inside parent folder'"/>
+                        <TextBlock Style="{StaticResource Body}" Text="The subfolder name from the spreadsheet was not found in the Source Folder. Common causes:"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The folder was already moved in a previous run"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The job number in the spreadsheet doesn't match the actual folder name (check leading zeros, extra spaces)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  The wrong Source Folder path is selected"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  For Box: the wrong Source Folder ID is entered, or the subfolder is in a different parent"/>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 3 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Box: 'redirect_uri_missing' shown in browser"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            The five redirect URIs have not been added to your Box app. Go to
+                            developer.box.com → My Apps → your app → Configuration → Redirect URIs and add all five
+                            <Run FontFamily="Consolas" FontSize="11">http://localhost:492xx/callback</Run> entries listed in
+                            the Box.com Setup tab. Save the Configuration page after adding them.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 4 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Box: 'No local port is available for the Box sign-in callback'"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            All five OAuth callback ports (49200–49204) are already registered with Windows http.sys by
+                            other processes. Close any local development servers (Node.js, IIS Express, React dev server,
+                            etc.) that may be using those ports and try again.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 5 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Box: Authentication timed out"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            The sign-in flow must be completed within 2 minutes. If the browser did not open
+                            automatically, check that your default browser is configured correctly in Windows settings.
+                            Click <Run FontWeight="SemiBold">Sign in with Box…</Run> again to restart the flow.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 6 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="No columns appear in the mapping dropdowns"/>
+                        <TextBlock Style="{StaticResource Body}" Text="If no columns are populated after selecting a file:"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Verify the file is a valid CSV or Excel file and not corrupted"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  For Excel files, ensure it is not password-protected"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  Check that row 1 contains column headers (not data or a blank row)"/>
+                        <TextBlock Style="{StaticResource Bullet}" Text="•  If the file is open in Excel, close it and browse again"/>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 7 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Cross-drive Move is slow"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            When source and destination are on different drives (e.g. C:\ → D:\, or a local drive to a
+                            network share), Archive Automator performs a full recursive copy, verifies the file count,
+                            then deletes the source. This is expected behaviour — a same-drive rename is nearly instant,
+                            while a cross-drive copy takes time proportional to the data size.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Issue 8 ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="'BoxApiProvider is not authenticated' during a run"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            You started a Box run without first clicking <Run FontWeight="SemiBold">Sign in with Box…</Run>
+                            and completing authentication. The ✓ Authenticated badge must be visible before starting.
+                            Authentication is per-session and must be repeated each time you open the application.
+                        </TextBlock>
+
+                        <Separator Style="{StaticResource Rule}"/>
+                        <!-- ── Logs ── -->
+                        <TextBlock Style="{StaticResource H2}" Text="Reviewing the Audit Log"/>
+                        <TextBlock Style="{StaticResource Body}">
+                            Every run writes a detailed log. Use
+                            <Run FontWeight="SemiBold">File → Open Logs Folder</Run> or
+                            <Run FontWeight="SemiBold">File → Open Last Log</Run> for quick access.
+                        </TextBlock>
+                        <Border Style="{StaticResource CodeBlock}">
+                            <TextBlock Style="{StaticResource Code}"
+                                       Text="%LocalAppData%\ArchiveAutomator\Logs\log_yyyyMMdd_HHmmss.csv"/>
+                        </Border>
+                        <TextBlock Style="{StaticResource Body}">
+                            The <Run FontFamily="Consolas" FontSize="11">ErrorDetails</Run> column contains the full
+                            exception message for every failed job, making it straightforward to diagnose what went wrong.
+                        </TextBlock>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             BOTTOM BAR
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1"
+                BorderBrush="#DDDDDD" BorderThickness="0 1 0 0"
+                Background="#F8F8F8"
+                Padding="14 8">
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left"
+                           VerticalAlignment="Center"
+                           Foreground="#999999" FontSize="11"
+                           Text="Archive Automator  ·  By O.R. Hernandez"/>
+                <Button DockPanel.Dock="Right"
+                        Content="  Close  "
+                        Padding="18 4"
+                        Click="CloseButton_Click"
+                        IsDefault="True"/>
+            </DockPanel>
+        </Border>
+
+    </Grid>
+</Window>

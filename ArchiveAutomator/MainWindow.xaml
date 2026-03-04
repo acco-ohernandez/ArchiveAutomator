@@ -6,7 +6,7 @@
         xmlns:vm="clr-namespace:ArchiveAutomator.ViewModels"
         xmlns:views="clr-namespace:ArchiveAutomator.Views"
         mc:Ignorable="d"
-        Title="Archive Automator By:ORHernandez" Height="780" Width="1100"
+        Title="Archive Automator By:ORHernandez" Height="840" Width="1100"
         MinHeight="600" MinWidth="860">
 
     <Window.DataContext>
@@ -29,6 +29,15 @@
                           Command="{Binding OpenLogsFolderCommand}"/>
                 <MenuItem Header="Open _Last Log"
                           Command="{Binding OpenLastLogCommand}"/>
+                <MenuItem Header="Open _Sessions Folder"
+                          Command="{Binding OpenSessionsFolderCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_User Guide…"
+                          Command="{Binding ShowHelpCommand}"/>
+                <Separator/>
+                <MenuItem Header="_About Archive Automator"
+                          Command="{Binding ShowAboutCommand}"/>
             </MenuItem>
         </Menu>
 

@@ -22,7 +22,7 @@ No tests yet. Targets `net8.0-windows` (`UseWPF=true`, `UseWindowsForms=true`). 
 **All phases fully implemented. Builds clean (0 errors, 0 warnings).**
 
 ### NuGet Packages (installed)
-- `Box.Sdk.Gen` 1.12.0 — Box API (NOT `Box.V2` — that is .NET Framework only)
+- `Box.Sdk.Gen` 1.12.0 — Box API (**NOT** `Box.V2` — that is .NET Framework only)
 - `ClosedXML` 0.105.0 — XLSX parsing
 - `CsvHelper` 33.1.0 — CSV parsing
 - `Microsoft.Identity.Client` 4.82.1
@@ -40,8 +40,16 @@ ArchiveAutomator/
                 OrchestratorService.cs, SessionService.cs, SettingsService.cs
   ViewModels/   MainViewModel.cs, RelayCommand.cs, ViewModelBase.cs
   Views/        ExecutionView, MappingView, PathsView, PreFlightView (.xaml + .xaml.cs)
-Sessions/       session JSON output — at solution root
-Logs/           per-run log_[timestamp].csv output — at solution root
+                HelpWindow.xaml + HelpWindow.xaml.cs   ← tabbed user guide
+README.md       Comprehensive user documentation
+```
+
+Runtime data (all in user profile — never in the application folder, no elevation needed):
+```
+%LocalAppData%\ArchiveAutomator\Logs\       per-run log_[timestamp].csv files
+%LocalAppData%\ArchiveAutomator\Sessions\   session_[RunId].json manifests
+%AppData%\ArchiveAutomator\settings.json    auto-saved settings
+%AppData%\ArchiveAutomator\profiles\        named profile JSON files
 ```
 
 ## Architecture
@@ -50,9 +58,9 @@ Logs/           per-run log_[timestamp].csv output — at solution root
 
 **`IStorageProvider`** — `CanMoveAsync`, `MoveAsync`, `CopyAsync`, `DeleteAsync`.
 
-**`JobItem`** — `JobNumber`, `FolderName`, `Status`, `State` (`Pending`/`InProgress`/`Success`/`Failed`), `ErrorDetails`.
+**`JobItem`** — `JobNumber`, `FolderName`, `Status`, `State` (`Pending`/`InProgress`/`Success`/`Failed`), `ErrorDetails`. Implements `INotifyPropertyChanged` so DataGrid cells update live without manual collection refresh.
 
-**`SessionManifest`** — `RunId` (GUID), `StartedAt` (ISO8601), `Mode`, `Operation`, `List<JobItem>`. Written to `/Sessions/session_[RunId].json`; updated after every individual operation.
+**`SessionManifest`** — `RunId` (GUID), `StartedAt` (ISO8601), `Mode`, `Operation`, `List<JobItem>`. Written to `%LocalAppData%\ArchiveAutomator\Sessions\session_[RunId].json`; updated after every individual operation.
 
 **`PersistedSettings`** (in `SettingsService.cs`) — `CsvFilePath`, `SourceFolderPath`, `ArchiveFolderPath`, `StorageMode`, `OperationMode`, `SelectedJobNumberColumn`, `SelectedStatusColumn`, `TriggerValue`, `BoxClientId`. Saved to `%AppData%\ArchiveAutomator\settings.json`. **`BoxClientSecret` is intentionally NOT persisted.**
 
@@ -74,14 +82,14 @@ Logs/           per-run log_[timestamp].csv output — at solution root
 ```
 Timestamp,JobID,Mode,Operation,Source,Destination,Result,ErrorDetails
 ```
-One file per run; named `log_yyyyMMdd_HHmmss.csv` in `/Logs/`.
+One file per run; named `log_yyyyMMdd_HHmmss.csv` in `%LocalAppData%\ArchiveAutomator\Logs\`.
 
 ### Settings persistence
 `SettingsService` has two layers:
 1. **Auto-save** (`settings.json`) — saves to `%AppData%\ArchiveAutomator\settings.json` on every property change. Loaded on startup **only when no resumable session was declined** (see Resume logic below).
-2. **Named profiles** (`profiles\*.json`) — explicit Save/Load via the Settings Profile GroupBox. Stored in `%AppData%\ArchiveAutomator\profiles\{name}.json`. `ListProfiles()` scans the folder; `SanitizeName()` strips illegal filename chars.
+2. **Named profiles** (`profiles\*.json`) — explicit Save/Load via the Settings Profile section. Stored in `%AppData%\ArchiveAutomator\profiles\{name}.json`. `ListProfiles()` scans the folder; `SanitizeName()` strips illegal filename chars.
 
-### Resume dialog behaviour (fixed)
+### Resume dialog behaviour
 - **No session found** → auto-load last settings normally.
 - **Session found, user clicks Yes** → auto-load settings (paths/columns), then overlay Mode/Operation/Jobs from the manifest on top.
 - **Session found, user clicks No** → start completely blank — settings are NOT loaded. This prevents the old job paths from silently reappearing.
@@ -93,7 +101,11 @@ Two-panel layout with a vertical `GridSplitter` between left and right.
 
 **Outer `DockPanel`**: Menu (Top) → StatusBar (Bottom) → Action bar (Bottom) → main Grid fills rest.
 
-**Left panel** (`ScrollViewer` → `StackPanel` of `Expander` sections, initial width 360 px, draggable):
+**Menu bar** — two top-level items:
+- `_File`: New Run · Open Logs Folder · Open Last Log · **Open Sessions Folder**
+- `_Help`: **User Guide…** (opens HelpWindow non-blocking) · **About Archive Automator** (MessageBox)
+
+**Left panel** (`ScrollViewer` → `StackPanel` of `Expander` sections, initial width 420 px, draggable):
 - Mode — Storage radio buttons + Operation radio buttons + Box credentials (conditional)
 - Settings Profile — profile name ComboBox + Save/Load buttons
 - Job List File — path TextBox + Browse button
@@ -111,13 +123,35 @@ Two-panel layout with a vertical `GridSplitter` between left and right.
 - Custom `ControlTemplate` for `Expander`: gradient header, rotating ▶/▼ chevron, hover/press highlights, card border (`CornerRadius="4"`), `IsExpanded` defaults to `True`.
 - Right-panel headers use matching `Border` + `LinearGradientBrush` (non-collapsible, always visible).
 
-**`MappingView.xaml`** was updated to a vertical 3-row `Grid` (Job Number col, Status col, Trigger value + Load Jobs) so it fits the narrow left panel.
+**`MappingView.xaml`** — vertical 3-row `Grid` (Job Number col, Status col, Trigger value + Load Jobs) so it fits the narrow left panel.
+
+**`HelpWindow.xaml`** — `ShowInTaskbar="False"`, `WindowStartupLocation="CenterScreen"`, 860×680. Contains a `TabControl` with six tabs: Overview, Quick Start, Job List File, Box.com Setup, Settings & Profiles, Troubleshooting. Local `Window.Resources` define styles: H1, H2, Body, Bullet, Note, CodeBlock (Border), Code (TextBlock), Rule (Separator), StepBadge (Border). Bottom bar has author credit left and a `CloseButton_Click` button (`IsDefault="True"`) right. Code-behind is a trivial `Window` subclass with `InitializeComponent()` + `CloseButton_Click` → `Close()`.
 
 **`CanStart` validation**:
 - Move or Copy: `SourceFolderPath` AND `ArchiveFolderPath` must be non-empty.
 - Delete: only `SourceFolderPath` required.
 - `OnPropertyChanged(nameof(CanStart))` fired from `SourceFolderPath`, `ArchiveFolderPath`, and `OperationMode` setters.
 - `OnPropertyChanged(nameof(IsDeleteMode))` fired from `OperationMode` setter, `ApplySession`, and `ClearAll`.
+
+### Commands in MainViewModel
+| Command | Enabled when | Description |
+|---|---|---|
+| `BrowseCsvCommand` | always | Opens file dialog for job list |
+| `BrowseSourceCommand` | always | Opens folder browser for source path |
+| `BrowseArchiveCommand` | always | Opens folder browser for archive path |
+| `ParseCommand` | CsvFilePath non-empty | Reads spreadsheet, populates Jobs |
+| `StartCommand` | CanStart | Starts the orchestration run async |
+| `PauseCommand` | IsRunning | Cancels CTS after current job |
+| `CancelCommand` | IsRunning | Cancels CTS immediately |
+| `AuthenticateBoxCommand` | CanAuthenticate | Runs Box OAuth browser flow |
+| `OpenLogsFolderCommand` | _logsDirectory exists | Opens Logs folder in Explorer |
+| `OpenLastLogCommand` | _lastLogPath exists | Opens last log CSV |
+| `OpenSessionsFolderCommand` | _sessionsDirectory exists | Opens Sessions folder in Explorer |
+| `ClearAllCommand` | !IsRunning | Resets all fields + auto-save |
+| `SaveProfileCommand` | ProfileName non-empty | Saves named profile |
+| `LoadProfileCommand` | ProfileName non-empty | Loads named profile |
+| `ShowHelpCommand` | always | Opens HelpWindow (non-blocking `.Show()`) |
+| `ShowAboutCommand` | always | Shows About MessageBox |
 
 ### Known namespace conflicts (UseWindowsForms=true)
 | Ambiguous type | Fix |
@@ -128,5 +162,44 @@ Two-panel layout with a vertical `GridSplitter` between left and right.
 | `UserControl` (code-behind) | `System.Windows.Controls.UserControl` fully qualified in all 4 View files |
 | `Application` (App.xaml.cs) | `System.Windows.Application` fully qualified |
 
-### Box credentials
-Set `BoxApiProvider.ClientId` and `BoxApiProvider.ClientSecret` static properties (done by ViewModel before calling `AuthenticateAsync`). OAuth2 browser flow: `BoxOAuth.GetAuthorizeUrl()` (no params); `GetTokensAuthorizationCodeGrantAsync(authCode)` (code only, no redirect param). Local `HttpListener` on `http://localhost:4545/` captures the redirect.
+### Box credentials & OAuth flow
+Set `BoxApiProvider.ClientId` and `BoxApiProvider.ClientSecret` static properties (done by ViewModel before calling `AuthenticateAsync`).
+
+OAuth2 browser flow step-by-step:
+1. `FindFreeOAuthPort()` probes `OAuthPorts = { 49200, 49201, 49202, 49203, 49204 }` in order. Creates a short-lived `HttpListener` probe per port: `probe.Start()` succeeds → that port is free, return `(port, "http://localhost:{port}/callback")`. `HttpListenerException` → port has an existing http.sys URL ACL, try next.
+2. `oauth.GetAuthorizeUrl(new GetAuthorizeUrlOptions { RedirectUri = callbackUri })` — the `RedirectUri` parameter is **required** when Box has multiple URIs registered; omitting it causes `redirect_uri_missing` in the browser.
+3. `Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true })` opens the URL in the default browser.
+4. `CaptureAuthCodeAsync(port, ct)` starts `HttpListener` on the chosen port, awaits `listener.GetContextAsync().WaitAsync(TimeSpan.FromMinutes(2), ct)`. Catches `OperationCanceledException` **and** `TimeoutException` (WaitAsync throws `TimeoutException` on 2-min expiry, not `OperationCanceledException`). Returns null on either → `AuthenticateAsync` returns `false`.
+5. `oauth.GetTokensAuthorizationCodeGrantAsync(authCode)` exchanges the auth code for tokens. No redirect_uri parameter needed here.
+6. `_client = new BoxClient(auth: oauth)` — stored as a **static field** so all BoxApiProvider instances share the one authenticated client.
+
+**All five redirect URIs must be registered in Box Developer Console → App → Configuration → Redirect URIs:**
+```
+http://localhost:49200/callback
+http://localhost:49201/callback
+http://localhost:49202/callback
+http://localhost:49203/callback
+http://localhost:49204/callback
+```
+
+### Box.Sdk.Gen API notes
+- Request types in `Box.Sdk.Gen.Managers` namespace (NOT `Box.Sdk.Gen.Schemas`)
+- `BoxApiException.ResponseInfo.StatusCode` (int) — not `BoxApiException.StatusCode`
+- `GetAuthorizeUrlOptions` takes a `RedirectUri` string property
+- `GetTokensAuthorizationCodeGrantAsync(authCode)` — just the code string, no redirect param
+- Retry helper: `IsRateLimitOrTransient` → `code == 429 || code is >= 500 and <= 503`
+- `MaxRetries = 4`, `BaseDelayMs = 500` → delays 500 ms, 1 s, 2 s, 4 s
+
+### Data directory setup (InitServices in MainViewModel)
+```csharp
+string baseDir     = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "ArchiveAutomator");
+_logsDirectory     = Path.Combine(baseDir, "Logs");
+_sessionsDirectory = Path.Combine(baseDir, "Sessions");
+Directory.CreateDirectory(_logsDirectory);
+Directory.CreateDirectory(_sessionsDirectory);
+_sessionService = new SessionService(_sessionsDirectory);
+```
+Uses `%LocalAppData%` so the app works without elevation regardless of install location.
+The old approach (navigating 4 levels up from `BaseDirectory`) only worked inside the VS solution tree.

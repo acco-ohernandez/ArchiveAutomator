@@ -7,35 +7,124 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>  <!-- Source row -->
             <RowDefinition Height="6"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>  <!-- Archive row -->
+            <RowDefinition Height="6"/>
+            <RowDefinition Height="Auto"/>  <!-- Box mode hint -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="115"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Source path -->
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Source folder:" VerticalAlignment="Center"/>
+        <!-- ── Source row ──────────────────────────────────────────────────── -->
+
+        <!-- Label: "Source folder:" (Local) or "Source folder ID:" (Box) -->
+        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Text" Value="Source folder:"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
+                            <Setter Property="Text" Value="Source folder ID:"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- TextBox: read-only + no tooltip in Local mode; editable + ID tooltip in Box mode.
+             IsReadOnly is set via Style (not as a local attribute) so the DataTrigger can override it. -->
         <TextBox Grid.Row="0" Grid.Column="1"
                  Text="{Binding SourceFolderPath, UpdateSourceTrigger=PropertyChanged}"
-                 IsReadOnly="True" VerticalContentAlignment="Center" Padding="4 2"/>
+                 VerticalContentAlignment="Center" Padding="4 2">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="IsReadOnly" Value="True"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
+                            <Setter Property="IsReadOnly" Value="False"/>
+                            <Setter Property="ToolTip"
+                                    Value="Enter the Box folder ID (the number in the URL when viewing the folder on Box.com, e.g. box.com/folder/123456789)."/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+
+        <!-- Browse button: hidden in Box mode (folder browser dialogs don't apply to Box IDs) -->
         <Button Grid.Row="0" Grid.Column="2" Content="Browse…"
                 Command="{Binding BrowseSourceCommand}"
-                Margin="6 0 0 0" Padding="8 2"/>
+                Margin="6 0 0 0" Padding="8 2"
+                Visibility="{Binding IsBoxMode, Converter={StaticResource InverseBoolVisibilityConverter}}"/>
 
-        <!-- Archive path — hidden in Delete mode -->
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Archive folder:" VerticalAlignment="Center"
-                   Visibility="{Binding IsDeleteMode, Converter={StaticResource InverseBoolVisibilityConverter}}"/>
+        <!-- ── Archive row — hidden in Delete mode ──────────────────────────── -->
+
+        <!-- Label: "Archive folder:" (Local) or "Archive folder ID:" (Box) -->
+        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"
+                   Visibility="{Binding IsDeleteMode, Converter={StaticResource InverseBoolVisibilityConverter}}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Text" Value="Archive folder:"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
+                            <Setter Property="Text" Value="Archive folder ID:"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- TextBox: same Local/Box pattern as Source.
+             Visibility is controlled by the local IsDeleteMode binding (wins over Style).
+             IsReadOnly is controlled by the Style trigger (no local conflict). -->
         <TextBox Grid.Row="2" Grid.Column="1"
                  Text="{Binding ArchiveFolderPath, UpdateSourceTrigger=PropertyChanged}"
-                 IsReadOnly="True" VerticalContentAlignment="Center" Padding="4 2"
-                 Visibility="{Binding IsDeleteMode, Converter={StaticResource InverseBoolVisibilityConverter}}"/>
+                 VerticalContentAlignment="Center" Padding="4 2"
+                 Visibility="{Binding IsDeleteMode, Converter={StaticResource InverseBoolVisibilityConverter}}">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="IsReadOnly" Value="True"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
+                            <Setter Property="IsReadOnly" Value="False"/>
+                            <Setter Property="ToolTip"
+                                    Value="Enter the destination Box folder ID (the number in the URL when viewing the folder on Box.com, e.g. box.com/folder/987654321)."/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+
+        <!-- Archive Browse button: hidden in Delete mode OR Box mode.
+             Both conditions use Style triggers (no local Visibility binding) so both
+             DataTriggers can participate — either one collapses the button. -->
         <Button Grid.Row="2" Grid.Column="2" Content="Browse…"
                 Command="{Binding BrowseArchiveCommand}"
-                Margin="6 0 0 0" Padding="8 2"
-                Visibility="{Binding IsDeleteMode, Converter={StaticResource InverseBoolVisibilityConverter}}"/>
+                Margin="6 0 0 0" Padding="8 2">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsDeleteMode}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsBoxMode}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+
+        <!-- ── Box mode hint ────────────────────────────────────────────────── -->
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
+                   Text="ℹ Folder IDs are in the Box.com URL when you open a folder: box.com/folder/{ID}"
+                   TextWrapping="Wrap" FontSize="11" FontStyle="Italic"
+                   Foreground="#555555" Margin="0 2 0 0"
+                   Visibility="{Binding IsBoxMode, Converter={StaticResource BoolVisibilityConverter}}"/>
+
     </Grid>
 </UserControl>

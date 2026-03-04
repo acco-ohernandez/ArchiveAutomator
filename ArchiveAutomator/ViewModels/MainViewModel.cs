@@ -21,8 +21,9 @@ public class MainViewModel : ViewModelBase
     private OrchestratorService?     _orchestrator;
     private CancellationTokenSource? _cts;
 
-    private string _logsDirectory = string.Empty;
-    private string _lastLogPath   = string.Empty;
+    private string _logsDirectory     = string.Empty;
+    private string _sessionsDirectory = string.Empty;
+    private string _lastLogPath       = string.Empty;
 
     // StringBuilder backing for LogText — avoids O(n²) string allocation on every AppendLog call.
     private readonly StringBuilder _logBuffer = new();
@@ -174,6 +175,9 @@ public class MainViewModel : ViewModelBase
     public RelayCommand ClearAllCommand { get; }
     public RelayCommand SaveProfileCommand { get; }
     public RelayCommand LoadProfileCommand { get; }
+    public RelayCommand ShowHelpCommand { get; }
+    public RelayCommand ShowAboutCommand { get; }
+    public RelayCommand OpenSessionsFolderCommand { get; }
 
     public MainViewModel()
     {
@@ -194,6 +198,10 @@ public class MainViewModel : ViewModelBase
             () => !string.IsNullOrWhiteSpace(_profileName));
         LoadProfileCommand     = new RelayCommand(ExecuteLoadProfile,
             () => !string.IsNullOrWhiteSpace(_profileName));
+        ShowHelpCommand        = new RelayCommand(ShowHelp);
+        ShowAboutCommand       = new RelayCommand(ShowAbout);
+        OpenSessionsFolderCommand = new RelayCommand(OpenSessionsFolder,
+            () => !string.IsNullOrEmpty(_sessionsDirectory) && Directory.Exists(_sessionsDirectory));
 
         InitServices();
         RefreshProfiles();
@@ -226,6 +234,7 @@ public class MainViewModel : ViewModelBase
             "ArchiveAutomator");
         _logsDirectory     = Path.Combine(baseDir, "Logs");
         string sessionsDir = Path.Combine(baseDir, "Sessions");
+        _sessionsDirectory = sessionsDir;
 
         // Pre-create both directories so they exist before any run starts.
         // Directory.CreateDirectory is a no-op if they already exist.
@@ -671,6 +680,32 @@ public class MainViewModel : ViewModelBase
     {
         if (File.Exists(_lastLogPath))
             Process.Start(new ProcessStartInfo(_lastLogPath) { UseShellExecute = true });
+    }
+
+    // ── Help / About ───────────────────────────────────────────────────────
+
+    private static void ShowHelp()
+    {
+        var win = new ArchiveAutomator.Views.HelpWindow();
+        win.Show();
+    }
+
+    private static void ShowAbout() =>
+        MsgBox.Show(
+            "Archive Automator\n" +
+            "Version 1.0\n\n" +
+            "Automates the movement, copying, or deletion of project\n" +
+            "folders based on a job list spreadsheet (CSV / XLSX).\n\n" +
+            "Supports Local File System and Box.com (API).\n\n" +
+            "By O.R. Hernandez",
+            "About Archive Automator",
+            MsgBoxButton.OK,
+            MsgBoxImage.Information);
+
+    private void OpenSessionsFolder()
+    {
+        if (Directory.Exists(_sessionsDirectory))
+            Process.Start(new ProcessStartInfo(_sessionsDirectory) { UseShellExecute = true });
     }
 
     // ── Logging ────────────────────────────────────────────────────────────
